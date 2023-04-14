@@ -3,8 +3,8 @@ import os
 
 #from PySide6.QtCore import QThread, Slot, QPoint, QTimer
 #from PySide6.QtWidgets import QApplication, QWidget
-from PyQt6.QtCore import QTimer
-from PyQt6.QtWidgets import QApplication, QWidget
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QApplication, QWidget
 from GUI.UI.ui_form import Ui_Widget
 from Control.ReportTemperature import clsTemperature
 
