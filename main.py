@@ -17,8 +17,8 @@ class Widget(QWidget):
         self.ui.setupUi(self)
         self.readTemperature = clsTemperature()
         self.timer = QTimer()
-        self.time.timeout.connect(self.updateCurrentTemperature)
-        self.time.start(1000)
+        self.timer.timeout.connect(self.updateCurrentTemperature)
+        self.timer.start(1000)
     
     def updateCurrentTemperature(self):
         currentTemperature = self.readTemperature.cali_temp()
