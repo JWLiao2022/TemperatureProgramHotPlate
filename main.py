@@ -3,7 +3,7 @@ import os
 
 #from PySide6.QtCore import QThread, Slot, QPoint, QTimer
 #from PySide6.QtWidgets import QApplication, QWidget
-from PyQt5.QtCore import QTimer, Signal, Slot
+from PyQt5.QtCore import QTimer, SIGNAL, SLOT
 from PyQt5.QtWidgets import QApplication, QWidget
 from GUI.UI.ui_form import Ui_Widget
 from GUI.Numpad.Numpad import Ui_Widget_Numpad
@@ -45,7 +45,7 @@ class Widget(QWidget):
         widget_numpad.show()
         widget_numpad.buttonSignal.connect(self.numpadInput)
 
-    @Slot()
+    @SLOT()
     def numpadInput(self, str):
         self.ui.lineEdit_T1.insert(str)
 
@@ -56,7 +56,7 @@ class Widget_numpad(QWidget):
         self.ui_numpad = Ui_Widget_Numpad()
         self.ui_numpad.setupUi(self)
         self.ui_numpad.buttonGroup.buttonClicked.connect(self.handleButtons)
-        self.buttonSignal = Signal(str)
+        self.buttonSignal = SIGNAL(str)
     
     def handleButtons(self, button):
         char = str(button.text())
