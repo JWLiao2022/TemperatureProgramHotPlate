@@ -3,13 +3,15 @@ import os
 
 #from PySide6.QtCore import QThread, Slot, QPoint, QTimer
 #from PySide6.QtWidgets import QApplication, QWidget
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Signal, Slot
 from PyQt5.QtWidgets import QApplication, QWidget
 from GUI.UI.ui_form import Ui_Widget
+from GUI.Numpad.Numpad import Ui_Widget_Numpad
 from Control.ReportTemperature import clsTemperature
 
 import numpy as np
 
+#Widget for the main window
 class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -19,10 +21,46 @@ class Widget(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.updateCurrentTemperature)
         self.timer.start(1000)
+
+        self.ui.lineEdit_T1.installEventFilter(self)
     
     def updateCurrentTemperature(self):
         currentTemperature = self.readTemperature.cali_temp()
         self.ui.label_currentTemperature.setText("{} \u00b0 C".format(currentTemperature))
+    
+    def mousePressEvent(self, event):
+        print("Main Widget Mouse Press")
+        super(Widget, self).mousePressEvent(event)
+    
+    def eventFilter(self, obj, event):
+        if self.ui.layoutWidget.indexOf(obj) != -1:
+            if event.type() == event.MouseButtonPress:
+                print("Widget click", obj)
+                self.showingFromNumPad()
+        
+        return super(Widget, self).eventFilter(obj, event)
+
+    def showingFromNumPad(self):
+        widget_numpad = Widget_numpad()
+        widget_numpad.show()
+        widget_numpad.buttonSignal.connect(self.numpadInput)
+
+    @Slot()
+    def numpadInput(self, str):
+        self.ui.lineEdit_T1.insert(str)
+
+#Widget for the numpad
+class Widget_numpad(QWidget):
+    def __init__(self) -> None:
+        super().__init__()
+        self.ui_numpad = Ui_Widget_Numpad()
+        self.ui_numpad.setupUi(self)
+        self.ui_numpad.buttonGroup.buttonClicked.connect(self.handleButtons)
+        self.buttonSignal = Signal(str)
+    
+    def handleButtons(self, button):
+        char = str(button.text())
+        self.buttonSignal.emit(char)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
