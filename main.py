@@ -33,7 +33,7 @@ class Widget(QWidget):
         super(Widget, self).mousePressEvent(event)
     
     def eventFilter(self, obj, event):
-        if self.ui.layoutWidget.indexOf(obj) != -1:
+        if self.ui.layoutWidget.indexAt(obj) != -1:
             if event.type() == event.MouseButtonPress:
                 print("Widget click", obj)
                 self.showingFromNumPad()
