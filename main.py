@@ -45,7 +45,6 @@ class Widget(QWidget):
         widget_numpad.show()
         widget_numpad.ui_numpad.pushButton_1.clicked.connect(self.numpadInput)
 
-    @pyqtSlot()
     def numpadInput(self, button):
         char = str(button.text())
 
