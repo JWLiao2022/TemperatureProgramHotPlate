@@ -21,7 +21,6 @@ class Widget(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.updateCurrentTemperature)
         self.timer.start(1000)
-        self.ui.lineEdit_T1.
 
         self.ui.lineEdit_T1.installEventFilter(self)
     
