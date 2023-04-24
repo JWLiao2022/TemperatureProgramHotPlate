@@ -21,6 +21,7 @@ class Widget(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.updateCurrentTemperature)
         self.timer.start(1000)
+        self.ui.lineEdit_T1.
 
         self.ui.lineEdit_T1.installEventFilter(self)
     
@@ -33,7 +34,7 @@ class Widget(QWidget):
         super(Widget, self).mousePressEvent(event)
     
     def eventFilter(self, obj, event):
-        if self.ui.indexAt(obj) != -1:
+        if obj == self:
             if event.type() == event.MouseButtonPress:
                 print("Widget click", obj)
                 self.showingFromNumPad()
