@@ -43,7 +43,7 @@ class Widget(QWidget):
     def showingFromNumPad(self):
         widget_numpad = Widget_numpad()
         widget_numpad.show()
-        widget_numpad.ui_numpad.buttonGroup.buttonClicked.connect(self.numpadInput)
+        widget_numpad.ui_numpad.gridLayout.buttonClicked.connect(self.numpadInput)
 
     def numpadInput(self, button):
         char = str(button.text())
