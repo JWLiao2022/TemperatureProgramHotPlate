@@ -11,7 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Widget_Numpad(object):
+class Ui_Widget(object):
     def setupUi(self, Widget):
         Widget.setObjectName("Widget")
         Widget.resize(621, 521)
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     Widget = QtWidgets.QWidget()
-    ui = Ui_Widget_Numpad()
+    ui = Ui_Widget()
     ui.setupUi(Widget)
     Widget.show()
     sys.exit(app.exec_())
