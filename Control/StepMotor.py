@@ -5,7 +5,7 @@ from PyQt5.QtCore import pyqtSignal
 from time import time, sleep
 
 import numpy as np
-from ReportTemperature import clsTemperature
+from Control.ReportTemperature import clsTemperature
 
 class clsStepMotor():
     ###Step resolution is 1/8 *4 (0.9^0), giving ~ 0.7572^0 per step 
