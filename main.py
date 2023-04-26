@@ -37,7 +37,7 @@ class Widget(QWidget):
         #Set a timer for updating plot for every 30 seconds
         self.plotTimer = QTimer()
         self.plotTimer.timeout.connect(self.updatePlot)
-        self.plotTimer.start(5000)
+        self.plotTimer.start(30000)
         self.now = datetime.now()
         #self.updateTimeStart = self.now.strftime("%H:%M:%S")
 
