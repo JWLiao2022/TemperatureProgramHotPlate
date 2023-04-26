@@ -46,6 +46,7 @@ class clsStepMotor(QThread):
         self.TempRampRate2 = userInputTempRampRate2
         self.TempHoldTime2 = userInputTempHoldTime2
         self.TempReduceRate = userInputTempReduceRate
+        self.readTemperature = clsTemperature()
         self.startTime = time()
         self.currentStepcount = 1
     
@@ -70,7 +71,7 @@ class clsStepMotor(QThread):
 
         GPIO.output(self.DIR, self.RaiseT)
         delay = tempRampRate
-        currentTemp = clsTemperature()
+        currentTemp = self.readTemperature.cali_temp()
         #startTime = time()
 
         while (currentTemp < targetTemperature) and (self.currentStepcount < self.securityStep):
@@ -89,7 +90,7 @@ class clsStepMotor(QThread):
             GPIO.output(self.ENA, GPIO.HIGH)
             sleep(delay)
 
-            currentTemp = clsTemperature()
+            currentTemp = self.readTemperature.cali_temp()
             self.currentStepcount += 1
         
         #Hold the temperature for the temperature hold time
@@ -104,7 +105,7 @@ class clsStepMotor(QThread):
         GPIO.output(self.DIR, self.ReduceT)
         delay = tempReduceRate
 
-        currentTemp = clsTemperature()
+        currentTemp = self.readTemperature.cali_temp()
 
         for x in range(step_count):
             print("current temperature is {} degree C at time of {} seconds...".format(currentTemp, time()-self.startTime))
@@ -121,7 +122,7 @@ class clsStepMotor(QThread):
 
             GPIO.output(self.ENA, GPIO.HIGH)
             sleep(delay)
-            currentTemp = clsTemperature()
+            currentTemp = self.readTemperature.cali_temp()
 
     
     ######function to make sure the sleep function giving enough sleep time
