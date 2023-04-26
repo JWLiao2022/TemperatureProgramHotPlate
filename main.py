@@ -12,6 +12,8 @@ from Control.ReportTemperature import clsTemperature
 import numpy as np
 from datetime import datetime
 import time
+import pyqtgraph as pg
+from pyqtgraph.Qt import QtGui, QtCore
 
 #Widget for the main window
 class Widget(QWidget):
@@ -31,10 +33,11 @@ class Widget(QWidget):
         self.timer.start(1000)
         #Initialise the output plot
         self.initialisePlot()
-        #Set a timer for updating plot
+        self.pen = pg.mkPen()
+        #Set a timer for updating plot for every 30 seconds
         self.plotTimer = QTimer()
         self.plotTimer.timeout.connect(self.updatePlot)
-        self.plotTimer.start(5000)
+        self.plotTimer.start(30000)
         self.now = datetime.now()
         #self.updateTimeStart = self.now.strftime("%H:%M:%S")
 
@@ -87,15 +90,21 @@ class Widget(QWidget):
     def initialisePlot(self):
         self.ui.plotTemperatureVSTime.setLabel(axis='left', text='Temperature (\u00b0 C)')
         self.ui.plotTemperatureVSTime.setLabel(axis='bottom', text='Time (min)')
+        self.pen = pg.mkPen(color=(255, 0, 0))
+        font = QtGui.QFont()
+        font.setPixelSize(20)
+        self.ui.plotTemperatureVSTime.getAxis('bottom').tickFont = font
+        self.ui.plotTemperatureVSTime.getAxis('bottom').setStyle(tickTextOffset=20)
+        self.ui.plotTemperatureVSTime.getAxis('left').tickFont=font
+        self.ui.plotTemperatureVSTime.getAxis('left').setStyle(tickTextOffset=20)
     
     def updatePlot(self):
         datetime_end = datetime.now()
-        print("Started at {}, now at {}".format(self.now, datetime_end))
         minutes_diff = (datetime_end - self.now).total_seconds()/60.0
         currentTemperature = self.readTemperature.cali_temp()
         self.plotAxisTime.append(minutes_diff)
         self.plotAxisTemperature.append(currentTemperature)
-        self.ui.plotTemperatureVSTime.plot(self.plotAxisTime, self.plotAxisTemperature)
+        self.ui.plotTemperatureVSTime.plot(self.plotAxisTime, self.plotAxisTemperature, symbol='s', pen = self.pen)
         
 
 #Widget for the numpad
