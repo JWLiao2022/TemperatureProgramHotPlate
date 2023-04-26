@@ -1,13 +1,13 @@
 import RPi.GPIO as GPIO
 import os
 import glob
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QThread
 from time import time, sleep
 
 import numpy as np
 from Control.ReportTemperature import clsTemperature
 
-class clsStepMotor():
+class clsStepMotor(QThread):
     ###Step resolution is 1/8 *4 (0.9^0), giving ~ 0.7572^0 per step 
     TempResolution = 0.7572 #degree C/step at half resolution
     DIR = 20 ###GPIO pin 20
