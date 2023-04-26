@@ -146,7 +146,7 @@ class Widget(QWidget):
             self.listQLineEdit[i].setReadOnly(True)
             self.listQLineEdit[i].setStyleSheet("QLineEdit"
                                                 "{"
-                                                "background: grey;"
+                                                "background: lightGray;"
                                                 "}")
         
         #Close the numpad window
