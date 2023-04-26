@@ -10,6 +10,8 @@ from GUI.Numpad.Numpad import Ui_Widget_Numpad
 from Control.ReportTemperature import clsTemperature
 
 import numpy as np
+from datetime import datetime
+import time
 
 #Widget for the main window
 class Widget(QWidget):
@@ -27,6 +29,17 @@ class Widget(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.updateCurrentTemperature)
         self.timer.start(1000)
+        #Initialise the output plot
+        self.initialisePlot()
+        #Set a timer for updating plot
+        self.plotTimer = QTimer()
+        self.plotTimer.timeout.connect(self.updatePlot)
+        self.plotTimer.start(5000)
+        self.now = datetime.now()
+        #self.updateTimeStart = self.now.strftime("%H:%M:%S")
+
+        self.plotAxisTime = []
+        self.plotAxisTemperature = []
 
         #Create a list for all the QLineEdit
         self.listQLineEdit = [self.ui.lineEdit_T1, self.ui.lineEdit_Rate1, self.ui.lineEdit_Duration1, 
@@ -70,6 +83,20 @@ class Widget(QWidget):
             self.selectedLineEdit.clear()
         else:
             self.selectedLineEdit.insert(sentString)
+    
+    def initialisePlot(self):
+        self.ui.plotTemperatureVSTime.setLabel(axis='left', text='Temperature (\u00b0 C)')
+        self.ui.plotTemperatureVSTime.setLabel(axis='bottom', text='Time (min)')
+    
+    def updatePlot(self):
+        datetime_end = datetime.now()
+        print("Started at {}, now at {}".format(self.now, datetime_end))
+        minutes_diff = (datetime_end - self.now).total_seconds()/60.0
+        currentTemperature = self.readTemperature.cali_temp()
+        self.plotAxisTime.append(minutes_diff)
+        self.plotAxisTemperature.append(currentTemperature)
+        self.ui.plotTemperatureVSTime.plot(self.plotAxisTime, self.plotAxisTemperature)
+        
 
 #Widget for the numpad
 class Widget_numpad(QWidget):
