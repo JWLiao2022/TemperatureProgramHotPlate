@@ -124,10 +124,10 @@ class Widget(QWidget):
         targetTempHoldTime2 = float(self.ui.lineEdit_Duration2.text())
         targetTempCoolRate = float(self.ui.lineEdit_RateCool.text())
         
-        thermalCycle = clsStepMotor(targetTemperature1, targetTempRampRate1, targetTempHoldTime1, targetTemperature2, targetTempRampRate2, targetTempHoldTime2, targetTempCoolRate)
-        thermalCycle.signalCurrentStatus.connect(self.slot_updateCurrentStatus)
-        thermalCycle.signalIsFinished.connect(self.slot_resetGoBotton)
-        thermalCycle.startThermalCycle
+        self.thermalCycle = clsStepMotor(targetTemperature1, targetTempRampRate1, targetTempHoldTime1, targetTemperature2, targetTempRampRate2, targetTempHoldTime2, targetTempCoolRate)
+        self.thermalCycle.signalCurrentStatus.connect(self.slot_updateCurrentStatus)
+        self.thermalCycle.signalIsFinished.connect(self.slot_resetGoBotton)
+        self.thermalCycle.startThermalCycle
 
         self.ui.pushButton_Go.setEnabled(False)
         self.ui.pushButton_Go.setText("Under baking...")
