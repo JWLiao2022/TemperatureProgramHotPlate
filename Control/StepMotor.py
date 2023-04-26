@@ -65,8 +65,8 @@ class clsStepMotor(QThread):
     def raiseTemperature(self, targetTemperature, tempRampRate, tempHoldTime):
         #Heating
         #From room temperature to the targetTemperature
-        print("Ramping the temperature to {:d} degree C".format(targetTemperature))
-        self.signalCurrentStatus.emit("Ramping the temperature to {:d} \u00b0 C".format(targetTemperature))
+        print("Ramping the temperature to {:.2f} degree C".format(targetTemperature))
+        self.signalCurrentStatus.emit("Ramping the temperature to {:.2f} \u00b0 C".format(targetTemperature))
 
         GPIO.output(self.DIR, self.RaiseT)
         delay = tempRampRate
