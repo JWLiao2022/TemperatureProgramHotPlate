@@ -3,6 +3,7 @@ import os
 import glob
 from PyQt5.QtCore import pyqtSignal, QThread
 from time import time, sleep
+from datetime import datetime
 
 import numpy as np
 from Control.ReportTemperature import clsTemperature
@@ -59,7 +60,7 @@ class clsStepMotor(QThread):
         self.reduceTemperature(self.TempReduceRate)
         #Finish and clean the GPIO.
         print("Thermal cycle finished.")
-        self.signalCurrentStatus.emit("Thermal cycle finished.")
+        self.signalCurrentStatus.emit("{} Thermal cycle finished.\n".format(self.format_time()))
         GPIO.cleanup()
         self.finished.emit()
     
@@ -67,16 +68,16 @@ class clsStepMotor(QThread):
         #Heating
         #From room temperature to the targetTemperature
         print("Ramping the temperature to {:.2f} degree C".format(targetTemperature))
-        self.signalCurrentStatus.emit("Ramping the temperature to {:.2f} \u00b0 C".format(targetTemperature))
+        self.signalCurrentStatus.emit("{} Ramping the temperature to {:.2f} \u00b0 C.\n".format(self.format_time(), targetTemperature))
 
         GPIO.output(self.DIR, self.RaiseT)
-        delay = tempRampRate
+        delay = float(60/tempRampRate)
         currentTemp = self.readTemperature.cali_temp()
         #startTime = time()
 
         while (currentTemp < targetTemperature) and (self.currentStepcount < self.securityStep):
             print("current temperature is {:.2f} degree C at time of {:.2f} seconds...".format(currentTemp, time() - self.startTime))
-            self.signalCurrentStatus.emit("Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...".format(currentTemp, (time() - self.startTime)/60))
+            self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...\n".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
 
             GPIO.output(self.ENA, GPIO.LOW)
             sleep(0.5)
@@ -95,12 +96,12 @@ class clsStepMotor(QThread):
         
         #Hold the temperature for the temperature hold time
         print("Holding at the first target temperature of {} degreeC. Real temperature is  {} degree C.".format(targetTemperature, currentTemp))
-        self.signalCurrentStatus.emit("Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.".format(currentTemp, targetTemperature))
+        self.signalCurrentStatus.emit("{} Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.".format(self.format_time(), currentTemp, targetTemperature))
         self.trusty_sleep(tempHoldTime)
     
     def reduceTemperature(self, tempReduceRate):
         print("Cooling down...")
-        self.signalCurrentStatus.emit("Cooling down...")
+        self.signalCurrentStatus.emit("{} Cooling down...\n".format(self.format_time()))
         step_count = self.currentStepcount
         GPIO.output(self.DIR, self.ReduceT)
         delay = tempReduceRate
@@ -109,7 +110,7 @@ class clsStepMotor(QThread):
 
         for x in range(step_count):
             print("current temperature is {} degree C at time of {} seconds...".format(currentTemp, time()-self.startTime))
-            self.signalCurrentStatus.emit("Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...".format(currentTemp, (time() - self.startTime)/60))
+            self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
 
             GPIO.output(self.ENA, GPIO.LOW)
             sleep(0.5)
@@ -130,3 +131,10 @@ class clsStepMotor(QThread):
         start = time()
         while(time() - start < n):
             sleep(n - (time()-start))
+    
+    #Report current date and time
+    def format_time(self):
+        now = datetime.now()
+        strNow = now.strftime('%d-%m-%Y %H:%M:%S.%f')
+
+        return strNow[:-3]
