@@ -144,6 +144,14 @@ class Widget(QWidget):
         #Set all the line edits read only
         for i in range(len(self.listQLineEdit)):
             self.listQLineEdit[i].setReadOnly(True)
+            self.listQLineEdit[i].setStyleSheet("QLineEdit"
+                                                "{"
+                                                "background: grey;"
+                                                "}")
+        
+        #Close the numpad window
+        if self.widget_numpad.isVisible() == True:
+            self.widget_numpad.close()
         
         self.thread.finished.connect(self.slot_resetGoBotton)
     
@@ -164,6 +172,10 @@ class Widget(QWidget):
         #Set all the line edits editable
         for i in range(len(self.listQLineEdit)):
             self.listQLineEdit[i].setReadOnly(False)
+            self.listQLineEdit[i].setStyleSheet("QLineEdit"
+                                                "{"
+                                                "background: white;"
+                                                "}")
         
 
 #Widget for the numpad
