@@ -60,7 +60,7 @@ class clsStepMotor(QThread):
         print("Thermal cycle finished.")
         self.signalCurrentStatus.emit("Thermal cycle finished.")
         GPIO.cleanup()
-        self.signalIsFinished.emit()
+        self.finished.emit()
     
     def raiseTemperature(self, targetTemperature, tempRampRate, tempHoldTime):
         #Heating

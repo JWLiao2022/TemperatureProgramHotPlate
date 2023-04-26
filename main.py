@@ -3,7 +3,7 @@ import os
 
 #from PySide6.QtCore import QThread, Slot, QPoint, QTimer
 #from PySide6.QtWidgets import QApplication, QWidget
-from PyQt5.QtCore import QTimer, pyqtSlot, pyqtSignal, Qt
+from PyQt5.QtCore import QTimer, pyqtSlot, pyqtSignal, Qt, QThread
 from PyQt5.QtWidgets import QApplication, QWidget, QLineEdit
 from GUI.UI.ui_form import Ui_Widget
 from GUI.Numpad.Numpad import Ui_Widget_Numpad
@@ -124,10 +124,19 @@ class Widget(QWidget):
         targetTempHoldTime2 = float(self.ui.lineEdit_Duration2.text())
         targetTempCoolRate = float(self.ui.lineEdit_RateCool.text())
         
-        self.thermalCycle = clsStepMotor(targetTemperature1, targetTempRampRate1, targetTempHoldTime1, targetTemperature2, targetTempRampRate2, targetTempHoldTime2, targetTempCoolRate)
+        self.thermalCycle = clsStepMotor(targetTemperature1, targetTempRampRate1, targetTempHoldTime1, 
+                                         targetTemperature2, targetTempRampRate2, targetTempHoldTime2, 
+                                         targetTempCoolRate)
+        self.thread = QThread()
+        self.thermalCycle.moveToThread(self.thread)
+        self.thread.started.connect(self.thermalCycle.startThermalCycle)
+        self.thermalCycle.finished.connect(self.thread.quit)
+        self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        
+        self.thread.start()
+
         self.thermalCycle.signalCurrentStatus.connect(self.slot_updateCurrentStatus)
-        self.thermalCycle.signalIsFinished.connect(self.slot_resetGoBotton)
-        self.thermalCycle.startThermalCycle
 
         self.ui.pushButton_Go.setEnabled(False)
         self.ui.pushButton_Go.setText("Under baking...")
@@ -135,6 +144,8 @@ class Widget(QWidget):
         #Set all the line edits read only
         for i in range(len(self.listQLineEdit)):
             self.listQLineEdit[i].setReadOnly(True)
+        
+        self.thread.finished.connect(self.slot_resetGoBotton)
     
     #Update the current status
     @pyqtSlot(str)
