@@ -53,6 +53,9 @@ class Widget(QWidget):
         #Connect the line edits to the numpad input signal
         for i in range(len(self.listQLineEdit)):
             self.listQLineEdit[i].installEventFilter(self)  
+        
+        #Start thermal cycle
+        self.ui.pushButton_Go.clicked.connect(self.startThermalCycle)
 
     def updateCurrentTemperature(self):
         currentTemperature = self.readTemperature.cali_temp()
