@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLineEdit
 from GUI.UI.ui_form import Ui_Widget
 from GUI.Numpad.Numpad import Ui_Widget_Numpad
 from Control.ReportTemperature import clsTemperature
+from Control.StepMotor import clsStepMotor
 
 import numpy as np
 from datetime import datetime
@@ -109,6 +110,46 @@ class Widget(QWidget):
         self.plotAxisTemperature.append(currentTemperature)
         self.ui.plotTemperatureVSTime.plot(self.plotAxisTime, self.plotAxisTemperature, pen = (255, 255, 0), symbol='s', symbolSize = 10, symbolBrush=(255, 255, 0),
                                            symbolPen=(255, 255, 0))
+    
+    def startThermalCycle(self):
+        #Input the user input parameters
+        targetTemperature1 = float(self.ui.lineEdit_T1.text())
+        targetTempRampRate1 = float(self.ui.lineEdit_Rate1.text())
+        targetTempHoldTime1 = float(self.ui.lineEdit_Duration1.text())
+        targetTemperature2 = float(self.ui.lineEdit_T2.text())
+        targetTempRampRate2 = float(self.ui.lineEdit_Rate2.text())
+        targetTempHoldTime2 = float(self.ui.lineEdit_Duration2.text())
+        targetTempCoolRate = float(self.ui.lineEdit_RateCool.text())
+        
+        thermalCycle = clsStepMotor(targetTemperature1, targetTempRampRate1, targetTempHoldTime1, targetTemperature2, targetTempRampRate2, targetTempHoldTime2, targetTempCoolRate)
+        thermalCycle.signalCurrentStatus.connect(self.slot_updateCurrentStatus)
+        thermalCycle.signalIsFinished.connect(self.slot_resetGoBotton)
+        thermalCycle.startThermalCycle
+
+        self.ui.pushButton_Go.setEnabled(False)
+        self.ui.pushButton_Go.setText("Under baking...")
+
+        #Set all the line edits read only
+        for i in range(len(self.listQLineEdit)):
+            self.listQLineEdit[i].setReadOnly(True)
+    
+    #Update the current status
+    @pyqtSlot(str)
+    def slot_updateCurrentStatus(self, txtStatusUpdate):
+        self.ui.textEditCurrentStatus.insertPlainText(txtStatusUpdate)
+        #Anchor the vertical scroll bar to the bottom.
+        vsb = self.ui.textEditCurrentStatus.verticalScrollBar()
+        vsb.setValue(vsb.maximum())
+    
+    #Reset the Go push button when the thermal cycle has finished.
+    @pyqtSlot()
+    def slot_resetGoBotton(self):
+        self.ui.pushButton_Go.setEnabled(True)
+        self.ui.pushButton_Go.setText("Go!")
+
+        #Set all the line edits editable
+        for i in range(len(self.listQLineEdit)):
+            self.listQLineEdit[i].setReadOnly(False)
         
 
 #Widget for the numpad
