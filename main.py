@@ -37,7 +37,7 @@ class Widget(QWidget):
         #Set a timer for updating plot for every 30 seconds
         self.plotTimer = QTimer()
         self.plotTimer.timeout.connect(self.updatePlot)
-        self.plotTimer.start(30000)
+        self.plotTimer.start(5000)
         self.now = datetime.now()
         #self.updateTimeStart = self.now.strftime("%H:%M:%S")
 
@@ -90,6 +90,8 @@ class Widget(QWidget):
     def initialisePlot(self):
         self.ui.plotTemperatureVSTime.setLabel(axis='left', text='Temperature (\u00b0 C)')
         self.ui.plotTemperatureVSTime.setLabel(axis='bottom', text='Time (min)')
+        self.ui.plotTemperatureVSTime.showAxis('right')
+        self.ui.plotTemperatureVSTime.showAxis('top')
         self.pen = pg.mkPen(color=(255, 0, 0))
         font = QtGui.QFont()
         font.setPixelSize(20)
@@ -102,9 +104,11 @@ class Widget(QWidget):
         datetime_end = datetime.now()
         minutes_diff = (datetime_end - self.now).total_seconds()/60.0
         currentTemperature = self.readTemperature.cali_temp()
+        #currentTemperature = 21
         self.plotAxisTime.append(minutes_diff)
         self.plotAxisTemperature.append(currentTemperature)
-        self.ui.plotTemperatureVSTime.plot(self.plotAxisTime, self.plotAxisTemperature, symbol='s', pen = self.pen)
+        self.ui.plotTemperatureVSTime.plot(self.plotAxisTime, self.plotAxisTemperature, pen = (255, 255, 0), symbol='s', symbolSize = 10, symbolBrush=(255, 255, 0),
+                                           symbolPen=(255, 255, 0))
         
 
 #Widget for the numpad
