@@ -137,4 +137,4 @@ class clsStepMotor(QThread):
         now = datetime.now()
         strNow = now.strftime('%d-%m-%Y %H:%M:%S.%f')
 
-        return strNow[:-1]
+        return strNow[:-5]
