@@ -198,7 +198,6 @@ class Widget(QWidget):
                                                 "{"
                                                 "background: white;"
                                                 "}")
-            self.listQLineEdit[i].clear()
         
         #Stop updating the plot
         self.plotTimer.stop()
