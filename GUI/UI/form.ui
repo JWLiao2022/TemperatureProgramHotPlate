@@ -152,7 +152,7 @@
           <x>0</x>
           <y>40</y>
           <width>291</width>
-          <height>131</height>
+          <height>136</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -205,19 +205,6 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QPushButton" name="pushButton_Go">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>480</y>
-     <width>291</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Go!</string>
-   </property>
-  </widget>
   <widget class="PlotWidget" name="plotTemperatureVSTime" native="true">
    <property name="geometry">
     <rect>
@@ -237,8 +224,13 @@
      <height>111</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -259,6 +251,32 @@
      <widget class="QLabel" name="label_currentTemperature">
       <property name="text">
        <string>Waiting...</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>490</y>
+     <width>291</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_9">
+    <item>
+     <widget class="QPushButton" name="pushButton_Go">
+      <property name="text">
+       <string>Go!</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pushButton_Stop">
+      <property name="text">
+       <string>Stop!</string>
       </property>
      </widget>
     </item>
