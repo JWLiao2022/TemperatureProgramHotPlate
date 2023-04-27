@@ -144,7 +144,7 @@ class Widget(QWidget):
         
         self.thread.start()
         '''
-        self.thermalCycle.startThermalCycle
+        self.thermalCycle.startThermalCycle()
 
         self.thermalCycle.signalCurrentStatus.connect(self.slot_updateCurrentStatus)
 
