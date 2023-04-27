@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 import os
 import glob
-from PyQt5.QtCore import pyqtSignal, QThread, QTimer
+from PyQt5.QtCore import pyqtSignal, QThread
 from time import time, sleep
 from datetime import datetime
 
@@ -34,162 +34,104 @@ class clsStepMotor(QThread):
     GPIO.output(MODE, RESOLUTION['1/8'])
 
     signalCurrentStatus = pyqtSignal(str)
-    signalCurrentStageFinished = pyqtSignal(int)
-    signalTargetTReached = pyqtSignal()
-    signalStartCoolingDown = pyqtSignal()
+    signalIsFinished = pyqtSignal()
     
     def __init__(self, userInputTemperature1, userInputTempRampRate1, userInputTempHoldTime1, 
                  userInputTemperature2, userInputTempRampRate2, userInputTempHoldTime2,
                  userInputTempReduceRate) -> None:
         super().__init__()
-        self.listTemperature = []
-        self.listTempRampRate = []
-        self.listTempHoldTime = []
         self.Temperature1 = userInputTemperature1
-        self.TempRampRate1 = (60/userInputTempRampRate1) * 1000 #ms/step, each step ~ 1 ^0C temp change
-        self.TempHoldTime1 = userInputTempHoldTime1 * 60 #seconds
+        self.TempRampRate1 = userInputTempRampRate1
+        self.TempHoldTime1 = userInputTempHoldTime1
         self.Temperature2 = userInputTemperature2
-        self.TempRampRate2 = (60/userInputTempRampRate2) * 1000 #ms/step, each step ~ 1 ^0C temp change
-        self.TempHoldTime2 = userInputTempHoldTime2 * 60 #seconds
-        self.TempReduceRate = (60/userInputTempReduceRate) * 1000 #ms/step, 
-        self.listTemperature.append(self.Temperature1)
-        self.listTemperature.append(self.Temperature2)
-        self.listTempRampRate.append(self.TempRampRate1)
-        self.listTempRampRate.append(self.TempRampRate2)
-        self.listTempHoldTime.append(self.TempHoldTime1)
-        self.listTempHoldTime.append(self.TempHoldTime2)
-
-        self.currentStage = 0
-        self.currentTargetT = self.listTemperature[self.currentStage]
-        self.currentTempRate = self.listTempRampRate[self.currentStage]
-        self.currentTempHoldTime = self.listTempHoldTime[self.currentStage]
-
-        self.totalNumStage = 2
-        self.finalTemperature = 30
-
+        self.TempRampRate2 = userInputTempRampRate2
+        self.TempHoldTime2 = userInputTempHoldTime2
+        self.TempReduceRate = userInputTempReduceRate
         self.readTemperature = clsTemperature()
         self.startTime = time()
-        self.heatingStepcount = 0
-        self.coolingStepcount = 0
-        self.currentTemperature = self.readTemperature.cali_temp()
-        #Initialising the timer
-        self.timerRaisingT = QTimer()
-        self.timerRaisingT.timeout.connect(self.stepperIncreasingTemperature)
-        self.timerMonitoringRaisingT = QTimer()
-        self.timerMonitoringRaisingT.timeout.connect(self.monitorRaisingTemperature)
-        self.timerTargetTReached = QTimer()
-        self.timerTargetTReached.timeout.connect(self.holdingTargetT)
-        self.timerCoolingT = QTimer()
-        self.timerCoolingT.timeout.connect(self.stepperReducingTemperature)
-        self.timerMonitorCoolingT = QTimer()
-        self.timerCoolingT.timeout.connect(self.monitorCoolingTemperature)
+        self.currentStepcount = 1
     
     def startThermalCycle(self):
-        print("Ramping the temperature to {:.2f} degree C".format(self.currentTargetT))
-        self.signalCurrentStatus.emit("{} Ramping the temperature to {:.2f} \u00b0 C.\n".format(self.format_time(), self.currentTargetT))
-        self.timerRaisingT.start(self.currentTempRate)
-        self.timerMonitoringRaisingT.start(self.currentTempRate/2)
+        #Heat from room temperature to T1.
+        self.raiseTemperature(self.Temperature1, self.TempRampRate1, self.TempHoldTime1)
+        #Heat from T1 to T2.
+        self.raiseTemperature(self.Temperature2, self.TempRampRate2, self.TempHoldTime2)
+        #Cool down.
+        self.reduceTemperature(self.TempReduceRate)
+        #Finish and clean the GPIO.
+        print("Thermal cycle finished.")
+        self.signalCurrentStatus.emit("{} Thermal cycle finished.\n".format(self.format_time()))
+        GPIO.cleanup()
+        self.finished.emit()
     
     def stopThermalCycle(self):
         #Finish and clean the GPIO.
         print("User stopped the thermal cycle.")
         self.signalCurrentStatus.emit("{} User stopped the thermal cycle.\n".format(self.format_time()))
-        #Stop all the timers
-        if (self.timerRaisingT.isActive):
-            self.timerRaisingT.stop()
-        if (self.timerMonitoringRaisingT.isActive):
-            self.timerMonitoringRaisingT.stop()
-        if (self.timerTargetTReached.isActive):
-            self.timerTargetTReached.stop()
-        if (self.timerCoolingT.isActive):
-            self.timerCoolingT.stop()
-        if (self.timerMonitorCoolingT.isActive):
-            self.timerMonitorCoolingT.stop()
-
         GPIO.cleanup()
         self.finished.emit()    
     
-    def stepperIncreasingTemperature(self):
+    def raiseTemperature(self, targetTemperature, tempRampRate, tempHoldTime):
+        #Heating
+        #From room temperature to the targetTemperature
+        print("Ramping the temperature to {:.2f} degree C".format(targetTemperature))
+        self.signalCurrentStatus.emit("{} Ramping the temperature to {:.2f} \u00b0 C.\n".format(self.format_time(), targetTemperature))
+
         GPIO.output(self.DIR, self.RaiseT)
-        GPIO.output(self.ENA, GPIO.LOW)
-        sleep(0.5)
+        delay = float(60/tempRampRate)
+        currentTemp = self.readTemperature.cali_temp()
+        #startTime = time()
 
-        for x in range(4):
-            GPIO.output(self.STEP, GPIO.HIGH)
-            sleep(0.02)
-            GPIO.output(self.STEP, GPIO.LOW)
-            sleep(0.02)
+        while (currentTemp < targetTemperature) and (self.currentStepcount < self.securityStep):
+            print("current temperature is {:.2f} degree C at time of {:.2f} seconds...".format(currentTemp, time() - self.startTime))
+            self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...\n".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
 
-        GPIO.output(self.ENA, GPIO.HIGH)
+            GPIO.output(self.ENA, GPIO.LOW)
+            sleep(0.5)
 
-        self.heatingStepcount += 1
-    
-    def stepperReducingTemperature(self):
-        GPIO.output(self.DIR, self.ReduceT)
-        GPIO.output(self.ENA, GPIO.LOW)
-        sleep(0.5)
+            for x in range(4):
+                GPIO.output(self.STEP, GPIO.HIGH)
+                sleep(0.02)
+                GPIO.output(self.STEP, GPIO.LOW)
+                sleep(0.02)
+
+            GPIO.output(self.ENA, GPIO.HIGH)
+            sleep(delay)
+
+            currentTemp = self.readTemperature.cali_temp()
+            self.currentStepcount += 1
         
-        for y in range(4):
-            GPIO.output(self.STEP, GPIO.HIGH)
-            sleep(0.02)
-            GPIO.output(self.STEP, GPIO.LOW)
-            sleep(0.02)
-
-        GPIO.output(self.ENA, GPIO.HIGH)
-
-        self.coolingStepcount += 1
+        #Hold the temperature for the temperature hold time
+        print("Holding at the first target temperature of {} degreeC. Real temperature is  {} degree C.".format(targetTemperature, currentTemp))
+        self.signalCurrentStatus.emit("{} Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.".format(self.format_time(), currentTemp, targetTemperature))
+        self.trusty_sleep(tempHoldTime)
     
-    def monitorRaisingTemperature(self):
-        self.currentTemp = self.readTemperature.cali_temp()
-        print("current temperature is {:.2f} degree C at time of {:.2f} seconds...".format(self.currentTemp, time() - self.startTime))
-        self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C...\n".format(self.format_time(), self.currentTemp)) 
+    def reduceTemperature(self, tempReduceRate):
+        print("Cooling down...")
+        self.signalCurrentStatus.emit("{} Cooling down...\n".format(self.format_time()))
+        step_count = self.currentStepcount
+        GPIO.output(self.DIR, self.ReduceT)
+        delay = tempReduceRate
 
-        #Stop the time when reach the target temperature
-        if self.currentTemp >= self.currentTargetT:
-            print("Holding at the first target temperature of {} degreeC. Real temperature is  {} degree C.".format(self.currentTargetT, self.currentTemp))
-            self.signalCurrentStatus.emit("{} Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.".format(self.format_time(), self.currentTemp, self.currentTargetT))
-            self.signalTargetTReached.emit()
-            self.timerRaisingT.stop()
-            self.timerMonitoringT.stop()
-            self.timerTargetTReached.start(self.currentTempHoldTime)
-    
-    def monitorCoolingTemperature(self):
-        self.currentTemp = self.readTemperature.cali_temp()
-        print("current temperature is {:.2f} degree C at time of {:.2f} seconds...".format(self.currentTemp, time() - self.startTime))
-        self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C...\n".format(self.format_time(), self.currentTemp)) 
+        currentTemp = self.readTemperature.cali_temp()
 
-        #End the process    
-        if (self.currentTemp <= self.finalTemperature) or (self.coolingStepcount > self.heatingStepcount):
-            print("Finished...")
-            self.signalCurrentStatus.emit("{} Finished...\n".format(self.format_time()))
-            self.timerCoolingT.stop()
-            self.timerMonitorCoolingT.stop()
-            GPIO.cleanup()
-            self.finished.emit()  
+        for x in range(step_count):
+            print("current temperature is {} degree C at time of {} seconds...".format(currentTemp, time()-self.startTime))
+            self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
 
-    def holdingTargetT(self):
-        #Feed in the new parameters
-        self.currentStage += 1
-        self.timerTargetTReached.stop()
+            GPIO.output(self.ENA, GPIO.LOW)
+            sleep(0.5)
+            
+            for y in range(4):
+                GPIO.output(self.STEP, GPIO.HIGH)
+                sleep(0.02)
+                GPIO.output(self.STEP, GPIO.LOW)
+                sleep(0.02)
 
-        #Check if continue heating or start cooling
-        if (self.currentStage < self.totalNumStage):
-            #Start another heating step
-            self.currentTargetT = self.listTemperature[self.currentStage]
-            self.currentTempRate = self.listTempRampRate[self.currentStage]
-            self.currentTempHoldTime = self.listTempHoldTime[self.currentStage]
-            self.currentTemp = self.readTemperature.cali_temp()
-            print("Ramping the temperature to {:.2f} degree C".format(self.currentTargetT))
-            self.signalCurrentStatus.emit("{} Ramping the temperature to {:.2f} \u00b0 C.\n"
-                                          .format(self.format_time(), self.currentTargetT))
-            self.timerRaisingT.start(self.currentTempRate)
-            self.timerMonitoringT.start(self.currentTempRate/2)
-        elif (self.currentStage == self.totalNumStage):
-            #Start cooling
-            print("Cooling down...")
-            self.signalCurrentStatus.emit("{} Cooling down...\n".format(self.format_time()))
-            self.timerCoolingT.start(self.TempReduceRate)
-            self.timerMonitorCoolingT.start(self.TempReduceRate/2)
+            GPIO.output(self.ENA, GPIO.HIGH)
+            sleep(delay)
+            currentTemp = self.readTemperature.cali_temp()
+
     
     ######function to make sure the sleep function giving enough sleep time
     def trusty_sleep(self, n):
@@ -202,4 +144,4 @@ class clsStepMotor(QThread):
         now = datetime.now()
         strNow = now.strftime('%d-%m-%Y %H:%M:%S.%f')
 
-        return strNow[:-6]
+        return strNow[:-5]
