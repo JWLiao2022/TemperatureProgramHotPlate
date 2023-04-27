@@ -9,7 +9,7 @@ from datetime import datetime
 import numpy as np
 from Control.ReportTemperature import clsTemperature
 
-class clsStepMotor():
+class clsStepMotor(QObject):
     ###Step resolution is 1/8 *4 (0.9^0), giving ~ 0.7572^0 per step 
 
     signalCurrentStatus = pyqtSignal(str)
