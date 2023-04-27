@@ -117,6 +117,7 @@ class Widget(QWidget):
         #currentTemperature = 21
         self.plotAxisTime.append(minutes_diff)
         self.plotAxisTemperature.append(currentTemperature)
+        self.ui.plotTemperatureVSTime.clear()
         self.ui.plotTemperatureVSTime.plot(self.plotAxisTime, self.plotAxisTemperature, pen = (255, 255, 0), symbol='s', symbolSize = 10, symbolBrush=(255, 255, 0),
                                            symbolPen=(255, 255, 0))
     
@@ -164,8 +165,8 @@ class Widget(QWidget):
 
         #Start update the plot at every 30 seconds
         #Reset the input plot lists before starting 
-        self.plotAxisTime = []
-        self.plotAxisTemperature = []
+        self.plotAxisTime = [0]
+        self.plotAxisTemperature = [self.readTemperature.cali_temp()]
         self.plotTimer.start(30000)
         self.now = datetime.now()
     

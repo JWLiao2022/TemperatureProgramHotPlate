@@ -114,7 +114,7 @@ class clsStepMotor(QThread):
             self.currentStepcount += 1
             
             #Check if the heating continues
-            if (currentTemp >= targetTemperature) and (self.currentStepcount > self.securityStep):
+            if (currentTemp >= targetTemperature) and (self.currentStepcount < self.securityStep):
                 self.continueRunning = False
         
         #Hold the temperature for the temperature hold time
