@@ -10,28 +10,6 @@ from Control.ReportTemperature import clsTemperature
 
 class clsStepMotor(QThread):
     ###Step resolution is 1/8 *4 (0.9^0), giving ~ 0.7572^0 per step 
-    TempResolution = 0.7572 #degree C/step at half resolution
-    DIR = 20 ###GPIO pin 20
-    STEP = 21 ###GPIO pin 21
-    ENA = 23 ###GPIO pin 23
-    RaiseT = 1 #clockwise
-    ReduceT = 0 #counterclockwise
-    securityStep = (150 - 25)/TempResolution
-    securityStep = int(round(securityStep))
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(DIR, GPIO.OUT)
-    GPIO.setup(STEP, GPIO.OUT)
-    GPIO.setup(ENA, GPIO.OUT)
-
-    MODE = (14, 15, 18)
-    GPIO.setup(MODE, GPIO.OUT)
-    RESOLUTION = {'Full': (0, 0, 0),
-                'Half': (1, 0, 0),
-                '1/4': (0, 1, 0),
-                '1/8': (1, 1, 0),
-                '1/16': (0, 0, 1),
-                '1/32': (1, 0, 1)}
-    GPIO.output(MODE, RESOLUTION['1/8'])
 
     signalCurrentStatus = pyqtSignal(str)
     signalIsFinished = pyqtSignal()
@@ -52,6 +30,30 @@ class clsStepMotor(QThread):
         self.currentStepcount = 1
         self.continueRunning = False
         self.continueNextStage = False
+
+        #Set up the GPIO
+        self.TempResolution = 0.7572 #degree C/step at half resolution
+        self.DIR = 20 ###GPIO pin 20
+        self.STEP = 21 ###GPIO pin 21
+        self.ENA = 23 ###GPIO pin 23
+        self.RaiseT = 1 #clockwise
+        self.ReduceT = 0 #counterclockwise
+        self.securityStep = (150 - 25)/self.TempResolution
+        self.securityStep = int(round(self.securityStep))
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.DIR, GPIO.OUT)
+        GPIO.setup(self.STEP, GPIO.OUT)
+        GPIO.setup(self.ENA, GPIO.OUT)
+
+        self.MODE = (14, 15, 18)
+        GPIO.setup(self.MODE, GPIO.OUT)
+        self.RESOLUTION = {'Full': (0, 0, 0),
+                    'Half': (1, 0, 0),
+                    '1/4': (0, 1, 0),
+                    '1/8': (1, 1, 0),
+                    '1/16': (0, 0, 1),
+                    '1/32': (1, 0, 1)}
+        GPIO.output(self.MODE, self.RESOLUTION['1/8'])
     
     def startThermalCycle(self):
         #Heat from room temperature to T1.
