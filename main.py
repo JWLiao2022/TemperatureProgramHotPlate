@@ -164,8 +164,8 @@ class Widget(QWidget):
 
         #Start update the plot at every 30 seconds
         #Reset the input plot lists before starting 
-        self.plotAxisTime = []
-        self.plotAxisTemperature = []
+        self.plotAxisTime = [0]
+        self.plotAxisTemperature = [self.readTemperature.cali_temp()]
         self.plotTimer.start(30000)
         self.now = datetime.now()
     
@@ -198,7 +198,6 @@ class Widget(QWidget):
                                                 "{"
                                                 "background: white;"
                                                 "}")
-            self.listQLineEdit[i].clear()
         
         #Stop updating the plot
         self.plotTimer.stop()
