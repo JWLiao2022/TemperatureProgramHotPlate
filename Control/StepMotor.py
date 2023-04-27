@@ -113,6 +113,8 @@ class clsWorkerStepMotor(QThread):
                     '1/32': (1, 0, 1)}
         GPIO.output(self.MODE, self.RESOLUTION['1/8'])
 
+        self.readTemperature = clsTemperature()
+
     def raiseTemperature(self, targetTemperature, tempRampRate, tempHoldTime, continueNextStage):
         #Heating
         #From room temperature to the targetTemperature
