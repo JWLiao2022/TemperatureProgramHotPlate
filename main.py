@@ -70,12 +70,13 @@ class Widget(QWidget):
         super(Widget, self).mousePressEvent(event)
     
     def eventFilter(self, obj, event):
-        for i in range(len(self.listQLineEdit)):
-            if obj == self.listQLineEdit[i]:
-                if event.type() == event.MouseButtonPress:
-                    print("Widget click", obj)
-                    self.showingFromNumPad()
-                    self.selectedLineEdit = obj
+        if self.ui.pushButton_Go.isEnabled():    
+            for i in range(len(self.listQLineEdit)):
+                if obj == self.listQLineEdit[i]:
+                    if event.type() == event.MouseButtonPress:
+                        print("Widget click", obj)
+                        self.showingFromNumPad()
+                        self.selectedLineEdit = obj
         
         return super(Widget, self).eventFilter(obj, event)
 
