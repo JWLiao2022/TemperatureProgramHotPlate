@@ -84,8 +84,8 @@ class clsStepMotor():
     
 class clsWorkerStepMotor(QThread):
 
-    def __init__(self, parent: QObject | None = ...) -> None:
-        super().__init__(parent)
+    def __init__(self) -> None:
+        super().__init__()
         #Set up the GPIO
         self.TempResolution = 0.7572 #degree C/step at half resolution
         self.DIR = 20 ###GPIO pin 20
