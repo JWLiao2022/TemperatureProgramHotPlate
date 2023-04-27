@@ -163,6 +163,9 @@ class Widget(QWidget):
         self.thread.finished.connect(self.slot_resetGoBotton)
 
         #Start update the plot at every 30 seconds
+        #Reset the input plot lists before starting 
+        self.plotAxisTime = []
+        self.plotAxisTemperature = []
         self.plotTimer.start(30000)
         self.now = datetime.now()
     
@@ -172,7 +175,6 @@ class Widget(QWidget):
         self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.finished.connect(self.slot_resetGoBotton)
-        
     
     #Update the current status
     @pyqtSlot(str)
@@ -196,6 +198,7 @@ class Widget(QWidget):
                                                 "{"
                                                 "background: white;"
                                                 "}")
+            self.listQLineEdit[i].clear()
         
         #Stop updating the plot
         self.plotTimer.stop()

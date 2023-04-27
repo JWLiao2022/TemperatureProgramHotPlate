@@ -65,6 +65,9 @@ class clsStepMotor(QThread):
         self.finished.emit()
     
     def stopThermalCycle(self):
+        #Finish and clean the GPIO.
+        print("User stopped the thermal cycle.")
+        self.signalCurrentStatus.emit("{} User stopped the thermal cycle.\n".format(self.format_time()))
         GPIO.cleanup()
         self.finished.emit()    
     
@@ -131,7 +134,7 @@ class clsStepMotor(QThread):
 
     
     ######function to make sure the sleep function giving enough sleep time
-    def trusty_sleep(n):
+    def trusty_sleep(self, n):
         start = time()
         while(time() - start < n):
             sleep(n - (time()-start))
