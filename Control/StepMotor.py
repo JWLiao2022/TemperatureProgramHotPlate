@@ -64,6 +64,10 @@ class clsStepMotor(QThread):
         GPIO.cleanup()
         self.finished.emit()
     
+    def stopThermalCycle(self):
+        GPIO.cleanup()
+        self.finished.emit()    
+    
     def raiseTemperature(self, targetTemperature, tempRampRate, tempHoldTime):
         #Heating
         #From room temperature to the targetTemperature

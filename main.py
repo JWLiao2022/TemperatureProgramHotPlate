@@ -38,9 +38,11 @@ class Widget(QWidget):
         #Set a timer for updating plot for every 30 seconds
         self.plotTimer = QTimer()
         self.plotTimer.timeout.connect(self.updatePlot)
-        self.plotTimer.start(30000)
-        self.now = datetime.now()
+        #self.plotTimer.start(30000)
+        #self.now = datetime.now()
         #self.updateTimeStart = self.now.strftime("%H:%M:%S")
+        #Disable the push button stop
+        self.ui.pushButton_Stop.setEnabled(False)
 
         self.plotAxisTime = []
         self.plotAxisTemperature = []
@@ -56,6 +58,9 @@ class Widget(QWidget):
         
         #Start thermal cycle
         self.ui.pushButton_Go.clicked.connect(self.startThermalCycle)
+
+        #Stop thermal cycle
+        self.ui.pushButton_Stop.clicked.connect(self.stopThermalCycle)
 
     def updateCurrentTemperature(self):
         currentTemperature = self.readTemperature.cali_temp()
@@ -99,7 +104,7 @@ class Widget(QWidget):
         self.ui.plotTemperatureVSTime.showAxis('top')
         self.pen = pg.mkPen(color=(255, 0, 0))
         font = QtGui.QFont()
-        font.setPixelSize(20)
+        font.setPixelSize(40)
         self.ui.plotTemperatureVSTime.getAxis('bottom').tickFont = font
         self.ui.plotTemperatureVSTime.getAxis('bottom').setStyle(tickTextOffset=20)
         self.ui.plotTemperatureVSTime.getAxis('left').tickFont=font
@@ -141,8 +146,9 @@ class Widget(QWidget):
 
         self.ui.pushButton_Go.setEnabled(False)
         self.ui.pushButton_Go.setText("Under baking...")
+        self.ui.pushButton_Stop.setEnabled(True)
 
-        #Set all the line edits read only
+        #Set all the line edits read only and change the background colour
         for i in range(len(self.listQLineEdit)):
             self.listQLineEdit[i].setReadOnly(True)
             self.listQLineEdit[i].setStyleSheet("QLineEdit"
@@ -155,6 +161,18 @@ class Widget(QWidget):
             self.widget_numpad.close()
         
         self.thread.finished.connect(self.slot_resetGoBotton)
+
+        #Start update the plot at every 30 seconds
+        self.plotTimer.start(30000)
+        self.now = datetime.now()
+    
+    def stopThermalCycle(self):
+        self.thermalCycle.stopThermalCycle()
+        self.thermalCycle.finished.connect(self.thread.quit)
+        self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self.slot_resetGoBotton)
+        
     
     #Update the current status
     @pyqtSlot(str)
@@ -169,8 +187,9 @@ class Widget(QWidget):
     def slot_resetGoBotton(self):
         self.ui.pushButton_Go.setEnabled(True)
         self.ui.pushButton_Go.setText("Go!")
+        self.ui.pushButton_Stop.setEnabled(False)
 
-        #Set all the line edits editable
+        #Set all the line edits editable and change the backbround colour back
         for i in range(len(self.listQLineEdit)):
             self.listQLineEdit[i].setReadOnly(False)
             self.listQLineEdit[i].setStyleSheet("QLineEdit"
@@ -178,6 +197,8 @@ class Widget(QWidget):
                                                 "background: white;"
                                                 "}")
         
+        #Stop updating the plot
+        self.plotTimer.stop()
 
 #Widget for the numpad
 class Widget_numpad(QWidget):
