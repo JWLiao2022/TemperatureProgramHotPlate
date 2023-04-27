@@ -51,25 +51,31 @@ class clsStepMotor(QThread):
         self.startTime = time()
         self.currentStepcount = 1
         self.continueRunning = False
+        self.continueNextStage = False
     
     def startThermalCycle(self):
         #Heat from room temperature to T1.
-        self.raiseTemperature(self.Temperature1, self.TempRampRate1, self.TempHoldTime1)
+        self.continueNextStage = True
+        if self.continueNextStage:
+            self.raiseTemperature(self.Temperature1, self.TempRampRate1, self.TempHoldTime1)
         #Heat from T1 to T2.
-        self.raiseTemperature(self.Temperature2, self.TempRampRate2, self.TempHoldTime2)
+        if self.continueNextStage:
+            self.raiseTemperature(self.Temperature2, self.TempRampRate2, self.TempHoldTime2)
         #Cool down.
-        self.reduceTemperature(self.TempReduceRate)
-        #Finish and clean the GPIO.
-        print("Thermal cycle finished.")
-        self.signalCurrentStatus.emit("{} Thermal cycle finished.\n".format(self.format_time()))
-        GPIO.cleanup()
-        self.finished.emit()
+        if self.continueNextStage:
+            self.reduceTemperature(self.TempReduceRate)
+            #Finish and clean the GPIO.
+            print("Thermal cycle finished.")
+            self.signalCurrentStatus.emit("{} Thermal cycle finished.\n".format(self.format_time()))
+            GPIO.cleanup()
+            self.finished.emit()
     
     def stopThermalCycle(self):
         #Finish and clean the GPIO.
         print("User stopped the thermal cycle.")
         self.signalCurrentStatus.emit("{} User stopped the thermal cycle.\n".format(self.format_time()))
         self.continueRunning = False
+        self.continueNextStage = False
         GPIO.cleanup()
         self.finished.emit()    
     
