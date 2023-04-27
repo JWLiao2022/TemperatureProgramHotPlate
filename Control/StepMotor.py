@@ -88,7 +88,7 @@ class clsStepMotor(QThread):
         print("Ramping the temperature to {:.2f} degree C".format(self.currentTargetT))
         self.signalCurrentStatus.emit("{} Ramping the temperature to {:.2f} \u00b0 C.\n".format(self.format_time(), self.currentTargetT))
         self.timerRaisingT.start(self.currentTempRate)
-        self.timerMonitoringT.start(self.currentTempRate/2)
+        self.timerMonitoringRaisingT.start(self.currentTempRate/2)
     
     def stopThermalCycle(self):
         #Finish and clean the GPIO.
