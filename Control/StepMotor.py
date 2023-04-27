@@ -50,6 +50,7 @@ class clsStepMotor(QThread):
         self.readTemperature = clsTemperature()
         self.startTime = time()
         self.currentStepcount = 1
+        self.continueRunning = False
     
     def startThermalCycle(self):
         #Heat from room temperature to T1.
@@ -68,6 +69,7 @@ class clsStepMotor(QThread):
         #Finish and clean the GPIO.
         print("User stopped the thermal cycle.")
         self.signalCurrentStatus.emit("{} User stopped the thermal cycle.\n".format(self.format_time()))
+        self.continueRunning = False
         GPIO.cleanup()
         self.finished.emit()    
     
@@ -82,7 +84,9 @@ class clsStepMotor(QThread):
         currentTemp = self.readTemperature.cali_temp()
         #startTime = time()
 
-        while (currentTemp < targetTemperature) and (self.currentStepcount < self.securityStep):
+        self.continueRunning = True
+
+        while (self.continueRunning):
             print("current temperature is {:.2f} degree C at time of {:.2f} seconds...".format(currentTemp, time() - self.startTime))
             self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...\n".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
 
@@ -100,6 +104,10 @@ class clsStepMotor(QThread):
 
             currentTemp = self.readTemperature.cali_temp()
             self.currentStepcount += 1
+            
+            #Check if the heating continues
+            if (currentTemp >= targetTemperature) and (self.currentStepcount > self.securityStep):
+                self.continueRunning = False
         
         #Hold the temperature for the temperature hold time
         print("Holding at the first target temperature of {} degreeC. Real temperature is  {} degree C.".format(targetTemperature, currentTemp))
@@ -110,12 +118,15 @@ class clsStepMotor(QThread):
         print("Cooling down...")
         self.signalCurrentStatus.emit("{} Cooling down...\n".format(self.format_time()))
         step_count = self.currentStepcount
+        current_step_count = 0
         GPIO.output(self.DIR, self.ReduceT)
         delay = tempReduceRate
 
         currentTemp = self.readTemperature.cali_temp()
 
-        for x in range(step_count):
+        self.continueRunning = True
+        
+        while (self.continueRunning):
             print("current temperature is {} degree C at time of {} seconds...".format(currentTemp, time()-self.startTime))
             self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
 
@@ -131,6 +142,11 @@ class clsStepMotor(QThread):
             GPIO.output(self.ENA, GPIO.HIGH)
             sleep(delay)
             currentTemp = self.readTemperature.cali_temp()
+            current_step_count += 1
+
+            #Check if the cooling process continues
+            if (current_step_count >= step_count) or (currentTemp <= 30):
+                self.continueRunning = False
 
     
     ######function to make sure the sleep function giving enough sleep time
@@ -144,4 +160,4 @@ class clsStepMotor(QThread):
         now = datetime.now()
         strNow = now.strftime('%d-%m-%Y %H:%M:%S.%f')
 
-        return strNow[:-5]
+        return strNow[:-6]
