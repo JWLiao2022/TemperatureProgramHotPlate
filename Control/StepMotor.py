@@ -124,7 +124,7 @@ class clsStepMotor(QObject):
             if (currentTemp >= targetTemperature) and (self.currentStepcount < self.securityStep):
                 self.continueRunning = False
         
-        while (self.continueRunning):
+        while (self.continueNextStage):
             #Hold the temperature for the temperature hold time
             print("Holding at the first target temperature of {} degreeC. Real temperature is  {} degree C.".format(targetTemperature, currentTemp))
             self.signalCurrentStatus.emit("{} Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.\n".format(self.format_time(), currentTemp, targetTemperature))
