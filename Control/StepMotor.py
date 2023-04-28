@@ -30,6 +30,7 @@ class clsStepMotor(QObject):
         self.startTime = time()
         self.currentStepcount = 1
         self.continueRunning = False
+        self.continueHolding = False
         self.continueNextStage = False
 
         #Set up the GPIO
@@ -79,6 +80,7 @@ class clsStepMotor(QObject):
         print("User stopped the thermal cycle.")
         self.signalCurrentStatus.emit("{} User stopped the thermal cycle.\n".format(self.format_time()))
         self.continueRunning = False
+        self.continueHolding = False
         self.continueNextStage = False
         GPIO.cleanup()
         #self.finished.emit()
@@ -98,6 +100,7 @@ class clsStepMotor(QObject):
         #startTime = time()
 
         self.continueRunning = True
+        self.continueHolding = True
 
         while (self.continueRunning):
             print("current temperature is {:.2f} degree C at time of {:.2f} seconds...".format(currentTemp, time() - self.startTime))
@@ -124,7 +127,8 @@ class clsStepMotor(QObject):
             if (currentTemp >= targetTemperature) and (self.currentStepcount < self.securityStep):
                 self.continueRunning = False
         
-        while (self.continueNextStage):
+        while (self.continueHolding):
+            self.continueHolding = False
             #Hold the temperature for the temperature hold time
             print("Holding at the first target temperature of {} degreeC. Real temperature is  {} degree C.".format(targetTemperature, currentTemp))
             self.signalCurrentStatus.emit("{} Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.\n".format(self.format_time(), currentTemp, targetTemperature))
