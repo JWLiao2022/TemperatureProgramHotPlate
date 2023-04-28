@@ -27,13 +27,14 @@ class clsUItoStepMotor():
         self.thermalCycle.finished.connect(self.thread.quit)
         self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
-        #Pass the reported current status to the following function
-        self.thermalCycle.signalCurrentStatus.connect(self.slot_reportCurrentStatus)
+        
         #Report when the thread is finished
         self.thread.finished.connect(self.slot_reportFinished)
     
     def startStepMotor(self):
         self.thread.start()
+        #Pass the reported current status to the following function
+        self.thermalCycle.signalCurrentStatus.connect(self.slot_reportCurrentStatus)
     
     def stopStepMotor(self):
         self.thermalCycle.stopThermalCycle()
