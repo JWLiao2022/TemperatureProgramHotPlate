@@ -108,7 +108,7 @@ class Widget(QWidget):
         self.ui.plotTemperatureVSTime.getAxis('bottom').setStyle(tickTextOffset=20)
         self.ui.plotTemperatureVSTime.getAxis('left').tickFont=font
         self.ui.plotTemperatureVSTime.getAxis('left').setStyle(tickTextOffset=20)
-        self.ui.plotTemperatureVSTime.getAxis('top').showValues(False)
+        self.ui.plotTemperatureVSTime.getAxis('top').showValues=False
     
     @pyqtSlot()
     def slot_updatePlot(self):
