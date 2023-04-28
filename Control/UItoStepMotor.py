@@ -26,21 +26,16 @@ class clsUItoStepMotor(QObject):
                                          self.Temperature2, self.TempRampRate2, self.TempHoldTime2,
                                          self.TempReduceRate)
         '''
-        
-        
-    def startStepMotor(self):
-        thread1 = myThread(self.Temperature1, self.TempRampRate1, self.TempHoldTime1,
+        self.thread1 = myThread(self.Temperature1, self.TempRampRate1, self.TempHoldTime1,
                            self.Temperature2, self.TempRampRate2, self.TempHoldTime2,
                            self.TempReduceRate)
-        thread1.start()
+        
+    def startStepMotor(self):
+        
+        self.thread1.start()
     
     def stopStepMotor(self):
-        self.thermalCycle.stopThermalCycle()
-        self.thermalCycle.finished.connect(self.thread.quit)
-        self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        #Report when the thread is finished
-        self.thread.finished.connect(self.slot_reportFinished)
+        self.thread1.stop()
     
     #Report the current status (str) back to UI
     @pyqtSlot(str)
@@ -69,3 +64,6 @@ class myThread(threading.Thread):
                                          self.TempReduceRate)
     def run(self):
         self.thermalCycle.startThermalCycle()
+    
+    def stop(self):
+        self.thermalCycle.stopThermalCycle()
