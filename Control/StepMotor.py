@@ -146,7 +146,7 @@ class clsStepMotor(QObject):
         step_count = self.currentStepcount
         current_step_count = 0
         GPIO.output(self.DIR, self.ReduceT)
-        delay = tempReduceRate
+        delay = float(60/tempReduceRate)
 
         currentTemp = self.readTemperature.cali_temp()
 
