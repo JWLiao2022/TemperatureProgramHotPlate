@@ -134,7 +134,6 @@ class Widget(QWidget):
         self.thermalCycle = clsStepMotor(targetTemperature1, targetTempRampRate1, targetTempHoldTime1, 
                                          targetTemperature2, targetTempRampRate2, targetTempHoldTime2, 
                                          targetTempCoolRate)
-        '''
         self.thread = QThread()
         self.thermalCycle.moveToThread(self.thread)
         self.thread.started.connect(self.thermalCycle.startThermalCycle)
@@ -143,8 +142,6 @@ class Widget(QWidget):
         self.thread.finished.connect(self.thread.deleteLater)
         
         self.thread.start()
-        '''
-        self.thermalCycle.startThermalCycle()
 
         self.thermalCycle.signalCurrentStatus.connect(self.slot_updateCurrentStatus)
 
@@ -164,8 +161,7 @@ class Widget(QWidget):
         if self.widget_numpad.isVisible() == True:
             self.widget_numpad.close()
         
-        #self.thread.finished.connect(self.slot_resetGoBotton)
-        self.thermalCycle.signalIsFinished.connect(self.slot_resetGoBotton)
+        self.thread.finished.connect(self.slot_resetGoBotton)
 
         #Start update the plot at every 30 seconds
         #Reset the input plot lists before starting 

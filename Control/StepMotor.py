@@ -1,20 +1,18 @@
-import typing
 import RPi.GPIO as GPIO
 import os
 import glob
-from PyQt5.QtCore import QObject, pyqtSignal, QThread
+from PyQt5.QtCore import pyqtSignal, QThread
 from time import time, sleep
 from datetime import datetime
 
 import numpy as np
 from Control.ReportTemperature import clsTemperature
 
-class clsStepMotor(QObject):
+class clsStepMotor(QThread):
     ###Step resolution is 1/8 *4 (0.9^0), giving ~ 0.7572^0 per step 
 
     signalCurrentStatus = pyqtSignal(str)
     signalIsFinished = pyqtSignal()
-    signalStop = pyqtSignal()
     
     def __init__(self, userInputTemperature1, userInputTempRampRate1, userInputTempHoldTime1, 
                  userInputTemperature2, userInputTempRampRate2, userInputTempHoldTime2,
@@ -22,73 +20,17 @@ class clsStepMotor(QObject):
         super().__init__()
         self.Temperature1 = userInputTemperature1
         self.TempRampRate1 = userInputTempRampRate1
-        self.TempHoldTime1 = userInputTempHoldTime1 * 60 #seconds
+        self.TempHoldTime1 = userInputTempHoldTime1
         self.Temperature2 = userInputTemperature2
         self.TempRampRate2 = userInputTempRampRate2
-        self.TempHoldTime2 = userInputTempHoldTime2 * 60 #seconds
+        self.TempHoldTime2 = userInputTempHoldTime2
         self.TempReduceRate = userInputTempReduceRate
         self.readTemperature = clsTemperature()
         self.startTime = time()
         self.currentStepcount = 1
-        #self.continueRunning = False
-        self.continueNextStage = False
-
-        #Move the worker to a new thread
-        self.newWorkerStepMotor = clsWorkerStepMotor()
-        self.thread = QThread()
-        self.newWorkerStepMotor.moveToThread(self.thread)
-    
-    def startThermalCycle(self):
-        #Heat from room temperature to T1.
-        self.continueNextStage = True
-        if self.continueNextStage:
-            #self.raiseTemperature(self.Temperature1, self.TempRampRate1, self.TempHoldTime1)
-            self.thread.started.connect(self.newWorkerStepMotor.raiseTemperature(self.Temperature1, self.TempRampRate1, self.TempHoldTime1, self.continueNextStage))
-            self.newWorkerStepMotor.finished.connect(self.thread.quit)
-            self.newWorkerStepMotor.finished.connect(self.newWorkerStepMotor.deleteLater)
-            self.thread.finished.connect(self.thread.deleteLater)
-            self.thread.start
-        #Heat from T1 to T2.
-        if self.continueNextStage:
-            #self.raiseTemperature(self.Temperature2, self.TempRampRate2, self.TempHoldTime2)
-            self.thread.started.connect(self.newWorkerStepMotor.raiseTemperature(self.Temperature2, self.TempRampRate2, self.TempHoldTime2, self.continueNextStage))
-            self.newWorkerStepMotor.finished.connect(self.thread.quit)
-            self.newWorkerStepMotor.finished.connect(self.newWorkerStepMotor.deleteLater)
-            self.thread.finished.connect(self.thread.deleteLater)
-            self.thread.start
-        #Cool down.
-        if self.continueNextStage:
-            #self.reduceTemperature(self.TempReduceRate)
-            self.thread.started.connect(self.newWorkerStepMotor.reduceTemperature(self.TempReduceRate))
-            self.newWorkerStepMotor.finished.connect(self.thread.quit)
-            self.newWorkerStepMotor.finished.connect(self.newWorkerStepMotor.deleteLater)
-            self.thread.finished.connect(self.thread.deleteLater)
-            self.thread.finished.connect(self.allFinished)
-            self.thread.start
-
-    def allFinished(self):
-        #Finish and clean the GPIO.
-        print("Thermal cycle finished.")
-        self.signalCurrentStatus.emit("{} Thermal cycle finished.\n".format(self.format_time()))
-        GPIO.cleanup()
-        #self.finished.emit()
-        self.signalIsFinished.emit()
-    
-    def stopThermalCycle(self):
-        #Finish and clean the GPIO.
-        print("User stopped the thermal cycle.")
-        self.signalCurrentStatus.emit("{} User stopped the thermal cycle.\n".format(self.format_time()))
-        #self.continueRunning = False
-        self.continueNextStage = False
-        GPIO.cleanup()
-        #self.finished.emit()
-        self.signalIsFinished.emit()    
-    
-class clsWorkerStepMotor(QThread):
-
-    def __init__(self) -> None:
-        super().__init__()
         self.continueRunning = False
+        self.continueNextStage = False
+
         #Set up the GPIO
         self.TempResolution = 0.7572 #degree C/step at half resolution
         self.DIR = 20 ###GPIO pin 20
@@ -112,16 +54,38 @@ class clsWorkerStepMotor(QThread):
                     '1/16': (0, 0, 1),
                     '1/32': (1, 0, 1)}
         GPIO.output(self.MODE, self.RESOLUTION['1/8'])
-
-        self.readTemperature = clsTemperature()
-        self.startTime = time()
-        self.currentStepcount = 1
-
-    def raiseTemperature(self, targetTemperature, tempRampRate, tempHoldTime, continueNextStage):
+    
+    def startThermalCycle(self):
+        #Heat from room temperature to T1.
+        self.continueNextStage = True
+        if self.continueNextStage:
+            self.raiseTemperature(self.Temperature1, self.TempRampRate1, self.TempHoldTime1)
+        #Heat from T1 to T2.
+        if self.continueNextStage:
+            self.raiseTemperature(self.Temperature2, self.TempRampRate2, self.TempHoldTime2)
+        #Cool down.
+        if self.continueNextStage:
+            self.reduceTemperature(self.TempReduceRate)
+            #Finish and clean the GPIO.
+            print("Thermal cycle finished.")
+            self.signalCurrentStatus.emit("{} Thermal cycle finished.\n".format(self.format_time()))
+            GPIO.cleanup()
+            self.finished.emit()
+    
+    def stopThermalCycle(self):
+        #Finish and clean the GPIO.
+        print("User stopped the thermal cycle.")
+        self.signalCurrentStatus.emit("{} User stopped the thermal cycle.\n".format(self.format_time()))
+        self.continueRunning = False
+        self.continueNextStage = False
+        GPIO.cleanup()
+        self.finished.emit()    
+    
+    def raiseTemperature(self, targetTemperature, tempRampRate, tempHoldTime):
         #Heating
         #From room temperature to the targetTemperature
         print("Ramping the temperature to {:.2f} degree C".format(targetTemperature))
-        #self.signalCurrentStatus.emit("{} Ramping the temperature to {:.2f} \u00b0 C.\n".format(self.format_time(), targetTemperature))
+        self.signalCurrentStatus.emit("{} Ramping the temperature to {:.2f} \u00b0 C.\n".format(self.format_time(), targetTemperature))
 
         GPIO.output(self.DIR, self.RaiseT)
         delay = float(60/tempRampRate)
@@ -132,7 +96,7 @@ class clsWorkerStepMotor(QThread):
 
         while (self.continueRunning):
             print("current temperature is {:.2f} degree C at time of {:.2f} seconds...".format(currentTemp, time() - self.startTime))
-            #self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...\n".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
+            self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...\n".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
 
             GPIO.output(self.ENA, GPIO.LOW)
             sleep(0.5)
@@ -153,13 +117,10 @@ class clsWorkerStepMotor(QThread):
             if (currentTemp >= targetTemperature) and (self.currentStepcount < self.securityStep):
                 self.continueRunning = False
         
-        while (continueNextStage):
-            #Hold the temperature for the temperature hold time
-            print("Holding at the first target temperature of {} degreeC. Real temperature is  {} degree C.".format(targetTemperature, currentTemp))
-            #self.signalCurrentStatus.emit("{} Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.\n".format(self.format_time(), currentTemp, targetTemperature))
-            self.trusty_sleep(tempHoldTime)
-        
-        self.finished.emit()
+        #Hold the temperature for the temperature hold time
+        print("Holding at the first target temperature of {} degreeC. Real temperature is  {} degree C.".format(targetTemperature, currentTemp))
+        self.signalCurrentStatus.emit("{} Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.".format(self.format_time(), currentTemp, targetTemperature))
+        self.trusty_sleep(tempHoldTime)
     
     def reduceTemperature(self, tempReduceRate):
         print("Cooling down...")
@@ -194,8 +155,7 @@ class clsWorkerStepMotor(QThread):
             #Check if the cooling process continues
             if (current_step_count >= step_count) or (currentTemp <= 30):
                 self.continueRunning = False
-        
-        self.finished.emit()
+
     
     ######function to make sure the sleep function giving enough sleep time
     def trusty_sleep(self, n):
