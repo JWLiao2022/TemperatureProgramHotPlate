@@ -189,9 +189,6 @@ class Widget(QWidget):
                                                 "{"
                                                 "background: white;"
                                                 "}")
-        
-        #Stop updating the plot
-        self.plotTimer.stop()
 
 #Widget for the numpad
 class Widget_numpad(QWidget):
