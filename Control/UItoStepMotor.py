@@ -1,7 +1,6 @@
 import sys
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QThread, QObject
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from Control.StepMotor import clsStepMotor
 
 import threading
@@ -9,6 +8,7 @@ import threading
 class clsUItoStepMotor(QObject):
     signalReceivedCurrentStatus = pyqtSignal(str)
     signalIsFinished = pyqtSignal()
+    signalUpdatingPlot = pyqtSignal()
 
     def __init__(self, userInputTemperature1, userInputTempRampRate1, userInputTempHoldTime1, 
                  userInputTemperature2, userInputTempRampRate2, userInputTempHoldTime2,
@@ -27,15 +27,13 @@ class clsUItoStepMotor(QObject):
         self.thread1 = myThread(self.thermalCycle)
         self.thermalCycle.signalCurrentStatus.connect(self.slot_reportCurrentStatus)
         self.thermalCycle.signalIsFinished.connect(self.slot_reportFinished)
-        
-        
+        self.thermalCycle.signalUpdatingPlot.connect(self.slot_updatePlot)
+            
     def startStepMotor(self):
-        
         self.thread1.start()
     
     def stopStepMotor(self):
         self.thread1.stop()
-        #self.signalIsFinished.emit()
     
     #Report the current status (str) back to UI
     @pyqtSlot(str)
@@ -46,6 +44,11 @@ class clsUItoStepMotor(QObject):
     @pyqtSlot()
     def slot_reportFinished(self):
         self.signalIsFinished.emit()
+
+    #Update the plot
+    @pyqtSlot()
+    def slot_updatePlot(self):
+        self.signalUpdatingPlot.emit()
 
 class myThread(threading.Thread):
     def __init__(self, inputObject):

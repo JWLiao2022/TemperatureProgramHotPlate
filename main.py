@@ -39,9 +39,6 @@ class Widget(QWidget):
         #Set a timer for updating plot for every 30 seconds
         self.plotTimer = QTimer()
         self.plotTimer.timeout.connect(self.updatePlot)
-        #self.plotTimer.start(30000)
-        #self.now = datetime.now()
-        #self.updateTimeStart = self.now.strftime("%H:%M:%S")
         #Disable the push button stop
         self.ui.pushButton_Stop.setEnabled(False)
 
@@ -111,11 +108,11 @@ class Widget(QWidget):
         self.ui.plotTemperatureVSTime.getAxis('left').tickFont=font
         self.ui.plotTemperatureVSTime.getAxis('left').setStyle(tickTextOffset=20)
     
-    def updatePlot(self):
+    @pyqtSlot()
+    def slot_updatePlot(self):
         datetime_end = datetime.now()
         minutes_diff = (datetime_end - self.now).total_seconds()/60.0
         currentTemperature = self.readTemperature.cali_temp()
-        #currentTemperature = 21
         self.plotAxisTime.append(minutes_diff)
         self.plotAxisTemperature.append(currentTemperature)
         self.ui.plotTemperatureVSTime.clear()
@@ -135,15 +132,17 @@ class Widget(QWidget):
         #Clear the status report
         self.ui.textEditCurrentStatus.clear()
         
+        #Initialise a new thermal cycle with user's input parameters
         self.thermalCycle = clsUItoStepMotor(targetTemperature1, targetTempRampRate1, targetTempHoldTime1, 
                                             targetTemperature2, targetTempRampRate2, targetTempHoldTime2, 
                                             targetTempCoolRate)
-        
+        #Start the thermal cycle
         self.thermalCycle.startStepMotor()
-        
+        #Connect the signals emitted from the running thermal cycle
         self.thermalCycle.signalReceivedCurrentStatus.connect(self.slot_updateCurrentStatus)
         self.thermalCycle.signalIsFinished.connect(self.slot_resetGoBotton)
-
+        self.thermalCycle.signalUpdatingPlot.connect(self.slot_updatePlot)
+        #Set the GUI status while running
         self.ui.pushButton_Go.setEnabled(False)
         self.ui.pushButton_Go.setText("Under baking...")
         self.ui.pushButton_Stop.setEnabled(True)
@@ -159,27 +158,8 @@ class Widget(QWidget):
         #Close the numpad window
         if self.widget_numpad.isVisible() == True:
             self.widget_numpad.close()
-        
-        #self.thread.finished.connect(self.slot_resetGoBotton)
-
-        #Start update the plot at every 30 seconds
-        #Reset the input plot lists before starting 
-        self.plotAxisTime = [0]
-        self.plotAxisTemperature = [self.readTemperature.cali_temp()]
-        self.ui.plotTemperatureVSTime.clear()
-        self.ui.plotTemperatureVSTime.plot(self.plotAxisTime, self.plotAxisTemperature, pen = (255, 255, 0), symbol='s', symbolSize = 10, symbolBrush=(255, 255, 0),
-                                           symbolPen=(255, 255, 0))
-        self.plotTimer.start(30000)
-        self.now = datetime.now()
     
     def stopThermalCycle(self):
-        '''
-        self.thermalCycle.stopThermalCycle()
-        self.thermalCycle.finished.connect(self.thread.quit)
-        self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        self.thread.finished.connect(self.slot_resetGoBotton)
-        '''
         self.thermalCycle.stopStepMotor()
         self.thermalCycle.signalIsFinished.connect(self.slot_resetGoBotton)
     

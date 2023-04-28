@@ -13,6 +13,7 @@ class clsStepMotor(QObject):
 
     signalCurrentStatus = pyqtSignal(str)
     signalIsFinished = pyqtSignal()
+    signalUpdatingPlot = pyqtSignal()
     
     def __init__(self, userInputTemperature1, userInputTempRampRate1, userInputTempHoldTime1, 
                  userInputTemperature2, userInputTempRampRate2, userInputTempHoldTime2,
@@ -88,6 +89,8 @@ class clsStepMotor(QObject):
         #From room temperature to the targetTemperature
         print("Ramping the temperature to {:.2f} degree C".format(targetTemperature))
         self.signalCurrentStatus.emit("{} Ramping the temperature to {:.2f} \u00b0 C.\n".format(self.format_time(), targetTemperature))
+        #Update the plot
+        self.signalUpdatingPlot.emit()
 
         GPIO.output(self.DIR, self.RaiseT)
         delay = float(60/tempRampRate)
@@ -99,6 +102,8 @@ class clsStepMotor(QObject):
         while (self.continueRunning):
             print("current temperature is {:.2f} degree C at time of {:.2f} seconds...".format(currentTemp, time() - self.startTime))
             self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...\n".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
+            #Update the plot
+            self.signalUpdatingPlot.emit()
 
             GPIO.output(self.ENA, GPIO.LOW)
             sleep(0.5)
@@ -119,14 +124,21 @@ class clsStepMotor(QObject):
             if (currentTemp >= targetTemperature) and (self.currentStepcount < self.securityStep):
                 self.continueRunning = False
         
-        #Hold the temperature for the temperature hold time
-        print("Holding at the first target temperature of {} degreeC. Real temperature is  {} degree C.".format(targetTemperature, currentTemp))
-        self.signalCurrentStatus.emit("{} Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.\n".format(self.format_time(), currentTemp, targetTemperature))
-        self.trusty_sleep(tempHoldTime)
+        while (self.continueRunning):
+            #Hold the temperature for the temperature hold time
+            print("Holding at the first target temperature of {} degreeC. Real temperature is  {} degree C.".format(targetTemperature, currentTemp))
+            self.signalCurrentStatus.emit("{} Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.\n".format(self.format_time(), currentTemp, targetTemperature))
+            #Update the plot
+            self.signalUpdatingPlot.emit()
+
+            self.trusty_sleep(tempHoldTime)
     
     def reduceTemperature(self, tempReduceRate):
         print("Cooling down...")
         self.signalCurrentStatus.emit("{} Cooling down...\n".format(self.format_time()))
+        #Update the plot
+        self.signalUpdatingPlot.emit()
+
         step_count = self.currentStepcount
         current_step_count = 0
         GPIO.output(self.DIR, self.ReduceT)
@@ -139,6 +151,9 @@ class clsStepMotor(QObject):
         while (self.continueRunning):
             print("current temperature is {} degree C at time of {} seconds...".format(currentTemp, time()-self.startTime))
             self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...\n".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
+
+            #Update the plot
+            self.signalUpdatingPlot.emit()
 
             GPIO.output(self.ENA, GPIO.LOW)
             sleep(0.5)
