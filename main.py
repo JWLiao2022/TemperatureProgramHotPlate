@@ -99,8 +99,8 @@ class Widget(QWidget):
     def initialisePlot(self):
         self.ui.plotTemperatureVSTime.setLabel(axis='left', text='Temperature (\u00b0 C)')
         self.ui.plotTemperatureVSTime.setLabel(axis='bottom', text='Time (min)')
-        self.ui.plotTemperatureVSTime.showAxis('right', showValues=False)
-        self.ui.plotTemperatureVSTime.showAxis('top', showValues=False)
+        self.ui.plotTemperatureVSTime.showAxis('right')
+        self.ui.plotTemperatureVSTime.showAxis('top')
         self.pen = pg.mkPen(color=(255, 0, 0))
         font = QtGui.QFont()
         font.setPixelSize(40)
@@ -108,6 +108,7 @@ class Widget(QWidget):
         self.ui.plotTemperatureVSTime.getAxis('bottom').setStyle(tickTextOffset=20)
         self.ui.plotTemperatureVSTime.getAxis('left').tickFont=font
         self.ui.plotTemperatureVSTime.getAxis('left').setStyle(tickTextOffset=20)
+        self.ui.plotTemperatureVSTime.getAxis('top').showValues(False)
     
     @pyqtSlot()
     def slot_updatePlot(self):
