@@ -21,14 +21,13 @@ class clsUItoStepMotor(QObject):
         self.TempRampRate2 = userInputTempRampRate2
         self.TempHoldTime2 = userInputTempHoldTime2
         self.TempReduceRate = userInputTempReduceRate
-        '''
         self.thermalCycle = clsStepMotor(self.Temperature1, self.TempRampRate1, self.TempHoldTime1,
                                          self.Temperature2, self.TempRampRate2, self.TempHoldTime2,
                                          self.TempReduceRate)
-        '''
-        self.thread1 = myThread(self.Temperature1, self.TempRampRate1, self.TempHoldTime1,
-                           self.Temperature2, self.TempRampRate2, self.TempHoldTime2,
-                           self.TempReduceRate)
+        self.thread1 = myThread(self.thermalCycle)
+        self.thermalCycle.signalCurrentStatus.connect(self.slot_reportCurrentStatus)
+        self.thermalCycle.signalIsFinished.connect(self.slot_reportFinished)
+        
         
     def startStepMotor(self):
         
@@ -36,6 +35,7 @@ class clsUItoStepMotor(QObject):
     
     def stopStepMotor(self):
         self.thread1.stop()
+        self.signalIsFinished.emit()
     
     #Report the current status (str) back to UI
     @pyqtSlot(str)
@@ -48,22 +48,12 @@ class clsUItoStepMotor(QObject):
         self.signalIsFinished.emit()
 
 class myThread(threading.Thread):
-    def __init__(self, userInputTemperature1, userInputTempRampRate1, userInputTempHoldTime1, 
-                 userInputTemperature2, userInputTempRampRate2, userInputTempHoldTime2,
-                 userInputTempReduceRate):
+    def __init__(self, inputObject):
         threading.Thread.__init__(self)
-        self.Temperature1 = userInputTemperature1
-        self.TempRampRate1 = userInputTempRampRate1
-        self.TempHoldTime1 = userInputTempHoldTime1
-        self.Temperature2 = userInputTemperature2
-        self.TempRampRate2 = userInputTempRampRate2
-        self.TempHoldTime2 = userInputTempHoldTime2
-        self.TempReduceRate = userInputTempReduceRate
-        self.thermalCycle = clsStepMotor(self.Temperature1, self.TempRampRate1, self.TempHoldTime1,
-                                         self.Temperature2, self.TempRampRate2, self.TempHoldTime2,
-                                         self.TempReduceRate)
+        self.runningObject = inputObject
+        
     def run(self):
-        self.thermalCycle.startThermalCycle()
+        self.runningObject.startThermalCycle()
     
     def stop(self):
-        self.thermalCycle.stopThermalCycle()
+        self.runningObject.stopThermalCycle()
