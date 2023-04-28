@@ -1,9 +1,9 @@
 import sys
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QThread
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QThread, QObject
 from Control.StepMotor import clsStepMotor
 
-class clsUItoStepMotor():
+class clsUItoStepMotor(QObject):
     signalReceivedCurrentStatus = pyqtSignal(str)
     signalIsFinished = pyqtSignal()
 
