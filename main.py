@@ -36,6 +36,7 @@ class Widget(QWidget):
         #Initialise the output plot
         self.initialisePlot()
         self.pen = pg.mkPen()
+        self.now = datetime.now()
         #Set a timer for updating plot for every 30 seconds
         #self.plotTimer = QTimer()
         #self.plotTimer.timeout.connect(self.updatePlot)
@@ -158,6 +159,9 @@ class Widget(QWidget):
         #Close the numpad window
         if self.widget_numpad.isVisible() == True:
             self.widget_numpad.close()
+        
+        #Start the time for the plot
+        self.now = datetime.now()
     
     def stopThermalCycle(self):
         self.thermalCycle.stopStepMotor()
