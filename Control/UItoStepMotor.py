@@ -24,15 +24,16 @@ class clsUItoStepMotor():
                                          self.TempReduceRate)
         self.thermalCycle.moveToThread(self.thread)
         self.thread.started.connect(self.thermalCycle.startThermalCycle)
-        self.thermalCycle.finished.connect(self.thread.quit)
-        self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        
-        #Report when the thread is finished
-        self.thread.finished.connect(self.slot_reportFinished)
     
     def startStepMotor(self):
         self.thread.start()
+        
+        #Connect signals from the working thread to the main thread
+        self.thermalCycle.finished.connect(self.thread.quit)
+        self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        #Report when the thread is finished
+        self.thread.finished.connect(self.slot_reportFinished)
         #Pass the reported current status to the following function
         self.thermalCycle.signalCurrentStatus.connect(self.slot_reportCurrentStatus)
     
