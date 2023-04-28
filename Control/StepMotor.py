@@ -20,10 +20,10 @@ class clsStepMotor(QObject):
         super().__init__()
         self.Temperature1 = userInputTemperature1
         self.TempRampRate1 = userInputTempRampRate1
-        self.TempHoldTime1 = userInputTempHoldTime1
+        self.TempHoldTime1 = userInputTempHoldTime1 * 60 #seconds
         self.Temperature2 = userInputTemperature2
         self.TempRampRate2 = userInputTempRampRate2
-        self.TempHoldTime2 = userInputTempHoldTime2
+        self.TempHoldTime2 = userInputTempHoldTime2 * 60 #seconds
         self.TempReduceRate = userInputTempReduceRate
         self.readTemperature = clsTemperature()
         self.startTime = time()
@@ -67,7 +67,7 @@ class clsStepMotor(QObject):
         if self.continueNextStage:
             self.reduceTemperature(self.TempReduceRate)
             #Finish and clean the GPIO.
-            print("Thermal cycle finished.")
+            print("Thermal cycle finished.\n")
             self.signalCurrentStatus.emit("{} Thermal cycle finished.\n".format(self.format_time()))
             GPIO.cleanup()
             #self.finished.emit()
@@ -121,7 +121,7 @@ class clsStepMotor(QObject):
         
         #Hold the temperature for the temperature hold time
         print("Holding at the first target temperature of {} degreeC. Real temperature is  {} degree C.".format(targetTemperature, currentTemp))
-        self.signalCurrentStatus.emit("{} Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.".format(self.format_time(), currentTemp, targetTemperature))
+        self.signalCurrentStatus.emit("{} Holding at the temperature of {:.2f} \u00b0 C. Real temperature is {:.2f} \u00b0 C.\n".format(self.format_time(), currentTemp, targetTemperature))
         self.trusty_sleep(tempHoldTime)
     
     def reduceTemperature(self, tempReduceRate):
@@ -138,7 +138,7 @@ class clsStepMotor(QObject):
         
         while (self.continueRunning):
             print("current temperature is {} degree C at time of {} seconds...".format(currentTemp, time()-self.startTime))
-            self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
+            self.signalCurrentStatus.emit("{} Current temperature is {:.2f} \u00b0 C at time of {:.2f} minutes...\n".format(self.format_time(), currentTemp, (time() - self.startTime)/60))
 
             GPIO.output(self.ENA, GPIO.LOW)
             sleep(0.5)

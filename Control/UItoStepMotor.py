@@ -35,7 +35,7 @@ class clsUItoStepMotor(QObject):
     
     def stopStepMotor(self):
         self.thread1.stop()
-        self.signalIsFinished.emit()
+        #self.signalIsFinished.emit()
     
     #Report the current status (str) back to UI
     @pyqtSlot(str)

@@ -131,22 +131,10 @@ class Widget(QWidget):
         targetTempRampRate2 = float(self.ui.lineEdit_Rate2.text())
         targetTempHoldTime2 = float(self.ui.lineEdit_Duration2.text())
         targetTempCoolRate = float(self.ui.lineEdit_RateCool.text())
-        
-        '''
-        self.thermalCycle = clsStepMotor(targetTemperature1, targetTempRampRate1, targetTempHoldTime1, 
-                                         targetTemperature2, targetTempRampRate2, targetTempHoldTime2, 
-                                         targetTempCoolRate)
-        self.thread = QThread()
-        self.thermalCycle.moveToThread(self.thread)
-        self.thread.started.connect(self.thermalCycle.startThermalCycle)
-        self.thermalCycle.finished.connect(self.thread.quit)
-        self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        
-        self.thread.start()
 
-        self.thermalCycle.signalCurrentStatus.connect(self.slot_updateCurrentStatus)
-        '''
+        #Clear the status report
+        self.ui.textEditCurrentStatus.clear()
+        
         self.thermalCycle = clsUItoStepMotor(targetTemperature1, targetTempRampRate1, targetTempHoldTime1, 
                                             targetTemperature2, targetTempRampRate2, targetTempHoldTime2, 
                                             targetTempCoolRate)
@@ -178,6 +166,9 @@ class Widget(QWidget):
         #Reset the input plot lists before starting 
         self.plotAxisTime = [0]
         self.plotAxisTemperature = [self.readTemperature.cali_temp()]
+        self.ui.plotTemperatureVSTime.clear()
+        self.ui.plotTemperatureVSTime.plot(self.plotAxisTime, self.plotAxisTemperature, pen = (255, 255, 0), symbol='s', symbolSize = 10, symbolBrush=(255, 255, 0),
+                                           symbolPen=(255, 255, 0))
         self.plotTimer.start(30000)
         self.now = datetime.now()
     
