@@ -189,6 +189,9 @@ class Widget(QWidget):
                                                 "{"
                                                 "background: white;"
                                                 "}")
+        #Reset the list for plot
+        self.plotAxisTime = []
+        self.plotAxisTemperature = []
 
 #Widget for the numpad
 class Widget_numpad(QWidget):
