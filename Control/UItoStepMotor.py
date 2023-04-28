@@ -4,6 +4,8 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QThread, QObject
 from PyQt5.QtWidgets import QWidget
 from Control.StepMotor import clsStepMotor
 
+import threading
+
 class clsUItoStepMotor(QWidget):
     signalReceivedCurrentStatus = pyqtSignal(str)
     signalIsFinished = pyqtSignal()
@@ -19,24 +21,18 @@ class clsUItoStepMotor(QWidget):
         self.TempRampRate2 = userInputTempRampRate2
         self.TempHoldTime2 = userInputTempHoldTime2
         self.TempReduceRate = userInputTempReduceRate
+        '''
         self.thermalCycle = clsStepMotor(self.Temperature1, self.TempRampRate1, self.TempHoldTime1,
                                          self.Temperature2, self.TempRampRate2, self.TempHoldTime2,
                                          self.TempReduceRate)
+        '''
+        
         
     def startStepMotor(self):
-        self.thread = QThread()
-        self.thermalCycle.moveToThread(self.thread)
-        self.thread.started.connect(self.thermalCycle.startThermalCycle)
-        #Connect signals from the working thread to the main thread
-        self.thermalCycle.finished.connect(self.thread.quit)
-        self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        #Report when the thread is finished
-        self.thread.finished.connect(self.slot_reportFinished)
-        #Pass the reported current status to the following function
-        self.thermalCycle.signalCurrentStatus.connect(self.slot_reportCurrentStatus)
-
-        self.thread.start()
+        thread1 = myThread(self.Temperature1, self.TempRampRate1, self.TempHoldTime1,
+                           self.Temperature2, self.TempRampRate2, self.TempHoldTime2,
+                           self.TempReduceRate)
+        thread1.start()
     
     def stopStepMotor(self):
         self.thermalCycle.stopThermalCycle()
@@ -55,3 +51,21 @@ class clsUItoStepMotor(QWidget):
     @pyqtSlot()
     def slot_reportFinished(self):
         self.signalIsFinished.emit()
+
+class myThread(threading.Thread):
+    def __init__(self, userInputTemperature1, userInputTempRampRate1, userInputTempHoldTime1, 
+                 userInputTemperature2, userInputTempRampRate2, userInputTempHoldTime2,
+                 userInputTempReduceRate):
+        threading.Thread.__init__(self)
+        self.Temperature1 = userInputTemperature1
+        self.TempRampRate1 = userInputTempRampRate1
+        self.TempHoldTime1 = userInputTempHoldTime1
+        self.Temperature2 = userInputTemperature2
+        self.TempRampRate2 = userInputTempRampRate2
+        self.TempHoldTime2 = userInputTempHoldTime2
+        self.TempReduceRate = userInputTempReduceRate
+        self.thermalCycle = clsStepMotor(self.Temperature1, self.TempRampRate1, self.TempHoldTime1,
+                                         self.Temperature2, self.TempRampRate2, self.TempHoldTime2,
+                                         self.TempReduceRate)
+    def run(self):
+        self.thermalCycle.startThermalCycle()
