@@ -22,7 +22,7 @@ class clsUItoStepMotor():
         self.thermalCycle = clsStepMotor(self.Temperature1, self.TempRampRate1, self.TempHoldTime1,
                                          self.Temperature2, self.TempRampRate2, self.TempHoldTime2,
                                          self.TempReduceRate)
-        self.thermalCycle.movetoThread(self.thread)
+        self.thermalCycle.moveToThread(self.thread)
         self.thread.started.connect(self.thermalCycle.startThermalCycle)
         self.thermalCycle.finished.connect(self.thread.quit)
         self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
