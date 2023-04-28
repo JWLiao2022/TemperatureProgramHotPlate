@@ -8,7 +8,8 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLineEdit
 from GUI.UI.ui_form import Ui_Widget
 from GUI.Numpad.Numpad import Ui_Widget_Numpad
 from Control.ReportTemperature import clsTemperature
-from Control.StepMotor import clsStepMotor
+#from Control.StepMotor import clsStepMotor
+from Control.UItoStepMotor import clsUItoStepMotor
 
 import numpy as np
 from datetime import datetime
@@ -131,6 +132,7 @@ class Widget(QWidget):
         targetTempHoldTime2 = float(self.ui.lineEdit_Duration2.text())
         targetTempCoolRate = float(self.ui.lineEdit_RateCool.text())
         
+        '''
         self.thermalCycle = clsStepMotor(targetTemperature1, targetTempRampRate1, targetTempHoldTime1, 
                                          targetTemperature2, targetTempRampRate2, targetTempHoldTime2, 
                                          targetTempCoolRate)
@@ -144,6 +146,13 @@ class Widget(QWidget):
         self.thread.start()
 
         self.thermalCycle.signalCurrentStatus.connect(self.slot_updateCurrentStatus)
+        '''
+        self.thermalCycle = clsUItoStepMotor(targetTemperature1, targetTempRampRate1, targetTempHoldTime1, 
+                                            targetTemperature2, targetTempRampRate2, targetTempHoldTime2, 
+                                            targetTempCoolRate)
+        
+        self.thermalCycle.signalReceivedCurrentStatus.connect(self.slot_updateCurrentStatus)
+        self.thermalCycle.signalIsFinished.connect(self.slot_resetGoBotton)
 
         self.ui.pushButton_Go.setEnabled(False)
         self.ui.pushButton_Go.setText("Under baking...")
@@ -161,7 +170,7 @@ class Widget(QWidget):
         if self.widget_numpad.isVisible() == True:
             self.widget_numpad.close()
         
-        self.thread.finished.connect(self.slot_resetGoBotton)
+        #self.thread.finished.connect(self.slot_resetGoBotton)
 
         #Start update the plot at every 30 seconds
         #Reset the input plot lists before starting 
@@ -171,11 +180,15 @@ class Widget(QWidget):
         self.now = datetime.now()
     
     def stopThermalCycle(self):
+        '''
         self.thermalCycle.stopThermalCycle()
         self.thermalCycle.finished.connect(self.thread.quit)
         self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.finished.connect(self.slot_resetGoBotton)
+        '''
+        self.thermalCycle.stopStepMotor()
+        self.thermalCycle.signalIsFinished.connect(self.slot_resetGoBotton)
     
     #Update the current status
     @pyqtSlot(str)
