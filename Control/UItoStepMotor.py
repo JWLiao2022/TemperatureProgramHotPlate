@@ -18,14 +18,13 @@ class clsUItoStepMotor(QObject):
         self.TempRampRate2 = userInputTempRampRate2
         self.TempHoldTime2 = userInputTempHoldTime2
         self.TempReduceRate = userInputTempReduceRate
-        
-    
-    def startStepMotor(self):
         self.thread = QThread()
         self.thermalCycle = clsStepMotor(self.Temperature1, self.TempRampRate1, self.TempHoldTime1,
                                          self.Temperature2, self.TempRampRate2, self.TempHoldTime2,
                                          self.TempReduceRate)
         self.thermalCycle.moveToThread(self.thread)
+    
+    def startStepMotor(self):
         self.thread.started.connect(self.thermalCycle.startThermalCycle)
         #Connect signals from the working thread to the main thread
         self.thermalCycle.finished.connect(self.thread.quit)
