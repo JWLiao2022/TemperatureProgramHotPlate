@@ -1,14 +1,14 @@
 import RPi.GPIO as GPIO
 import os
 import glob
-from PyQt5.QtCore import pyqtSignal, QThread
+from PyQt5.QtCore import pyqtSignal, QThread, QObject
 from time import time, sleep
 from datetime import datetime
 
 import numpy as np
 from Control.ReportTemperature import clsTemperature
 
-class clsStepMotor(QThread):
+class clsStepMotor(QObject):
     ###Step resolution is 1/8 *4 (0.9^0), giving ~ 0.7572^0 per step 
 
     signalCurrentStatus = pyqtSignal(str)
