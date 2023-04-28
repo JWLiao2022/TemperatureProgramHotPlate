@@ -10,7 +10,7 @@ class clsUItoStepMotor():
     def __init__(self, userInputTemperature1, userInputTempRampRate1, userInputTempHoldTime1, 
                  userInputTemperature2, userInputTempRampRate2, userInputTempHoldTime2,
                  userInputTempReduceRate) -> None:
-        super.__init__()
+        super().__init__()
         self.Temperature1 = userInputTemperature1
         self.TempRampRate1 = userInputTempRampRate1
         self.TempHoldTime1 = userInputTempHoldTime1
