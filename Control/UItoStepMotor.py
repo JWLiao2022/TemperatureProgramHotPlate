@@ -18,16 +18,15 @@ class clsUItoStepMotor(QObject):
         self.TempRampRate2 = userInputTempRampRate2
         self.TempHoldTime2 = userInputTempHoldTime2
         self.TempReduceRate = userInputTempReduceRate
+        
+    
+    def startStepMotor(self):
         self.thread = QThread()
         self.thermalCycle = clsStepMotor(self.Temperature1, self.TempRampRate1, self.TempHoldTime1,
                                          self.Temperature2, self.TempRampRate2, self.TempHoldTime2,
                                          self.TempReduceRate)
         self.thermalCycle.moveToThread(self.thread)
         self.thread.started.connect(self.thermalCycle.startThermalCycle)
-    
-    def startStepMotor(self):
-        self.thread.start()
-        
         #Connect signals from the working thread to the main thread
         self.thermalCycle.finished.connect(self.thread.quit)
         self.thermalCycle.finished.connect(self.thermalCycle.deleteLater)
@@ -36,6 +35,8 @@ class clsUItoStepMotor(QObject):
         self.thread.finished.connect(self.slot_reportFinished)
         #Pass the reported current status to the following function
         self.thermalCycle.signalCurrentStatus.connect(self.slot_reportCurrentStatus)
+
+        self.thread.start()
     
     def stopStepMotor(self):
         self.thermalCycle.stopThermalCycle()
