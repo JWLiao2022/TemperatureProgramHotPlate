@@ -37,8 +37,8 @@ class Widget(QWidget):
         self.initialisePlot()
         self.pen = pg.mkPen()
         #Set a timer for updating plot for every 30 seconds
-        self.plotTimer = QTimer()
-        self.plotTimer.timeout.connect(self.updatePlot)
+        #self.plotTimer = QTimer()
+        #self.plotTimer.timeout.connect(self.updatePlot)
         #Disable the push button stop
         self.ui.pushButton_Stop.setEnabled(False)
 
