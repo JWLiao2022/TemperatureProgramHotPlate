@@ -151,6 +151,8 @@ class Widget(QWidget):
                                             targetTemperature2, targetTempRampRate2, targetTempHoldTime2, 
                                             targetTempCoolRate)
         
+        self.thermalCycle.startStepMotor()
+        
         self.thermalCycle.signalReceivedCurrentStatus.connect(self.slot_updateCurrentStatus)
         self.thermalCycle.signalIsFinished.connect(self.slot_resetGoBotton)
 

@@ -6,7 +6,7 @@ from Control.StepMotor import clsStepMotor
 
 import threading
 
-class clsUItoStepMotor(QWidget):
+class clsUItoStepMotor(QObject):
     signalReceivedCurrentStatus = pyqtSignal(str)
     signalIsFinished = pyqtSignal()
 
