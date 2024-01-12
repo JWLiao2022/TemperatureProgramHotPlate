@@ -88,6 +88,7 @@ class Widget(QWidget):
         if self.widget_numpad.isVisible() == True:
             self.widget_numpad.close()
         self.widget_numpad.show()
+        self.widget_numpad.move(1000, 10)
 
     @pyqtSlot(str)
     def numpadInput(self, sentString):
